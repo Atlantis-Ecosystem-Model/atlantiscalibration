@@ -1,0 +1,41 @@
+#' Edit the catchability coefficient (mQ) for a species
+#'
+#' Multiplies the current scalar mQ value for a species by a user-supplied
+#' factor.  The line is identified by the pattern \code{<species>_mQ} and the
+#' name-value pair is expected to be tab-delimited.  Only scalar (single-value)
+#' mQ entries are supported; a vector mQ will raise an error.
+#'
+#' @param bio.lines Character vector of lines read from the biology \code{.prm}
+#'   file, typically the result of \code{readLines()}.
+#' @param factor Numeric multiplier applied to the current mQ value.
+#' @param species Character string with the species code used in the Atlantis
+#'   configuration (e.g. \code{"CHY"}).
+#'
+#' @return The modified \code{bio.lines} vector with the mQ line for
+#'   \code{species} updated.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   bio.lines <- readLines("AMPSbioparam.prm")
+#'   bio.lines <- edit_param_mq_sp(bio.lines, factor = 1.1, species = "CHY")
+#'   writeLines(bio.lines, "AMPSbioparam.prm")
+#' }
+edit_param_mq_sp = function(bio.lines, factor, species){
+
+  bio.lines = bio.lines
+  pattern = paste0(species,'_mQ')
+  bio.lines.id = grep(pattern,bio.lines)
+  bio.lines.vals1 = bio.lines[bio.lines.id]
+  if (length(bio.lines.vals1)==0) stop("The species does not have a mQ parameter")
+
+  value <- as.numeric(unlist(strsplit(bio.lines.vals1, "\t"))[2])
+  if (is.na(value)) stop("The function is not ready yet to deal with mQ vector")
+  value <- value*factor
+  name <- unlist(strsplit(bio.lines.vals1, "\t"))[1]
+  new.line <- paste0(name, "\t", value)
+  bio.lines[bio.lines.id] <- new.line
+
+  return(bio.lines)
+}
+

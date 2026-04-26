@@ -1,0 +1,234 @@
+---
+title: "Calibrating Atlantis with MPI Parallelism"
+author: "atlantiscalibration"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calibrating Atlantis with MPI Parallelism}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  eval      = FALSE   # model runs require an Atlantis binary; chunks shown but not executed
+)
+```
+
+## Overview
+
+This vignette demonstrates how to calibrate an [Atlantis](https://research.csiro.au/atlantis/)
+ecosystem model using the **calibrar** package with MPI-based parallel computing.
+The example uses the South East Atlantis Model (SETAS) model configuration and is designed to run on a multi-core server or HPC cluster.
+
+The workflow follows four steps:
+
+1. Create and load calibration configuration and parameters.
+2. Define a custom likelihood function and wrap it into an objective function.
+3. Distribute evaluation across workers with a Snow/MPI cluster.
+4. Run the AHR-ES optimiser and inspect results.
+
+
+Create the calibration parameters
+```{r}
+# reads calibration information
+
+# calibration_settings.csv
+# variable,type,calibrate,weight,use_data,file,varid
+
+#this function creates the calibration settings for all groups in the functional group file
+
+fg.file <- "SETasGroupsDem.csv" #functional group file
+var.type <- c("biomass", "weight") #parameters to calibrate
+fun.type <- "lnorm2" #optimization functions see package documentation for additional formulations
+no.cal.vector <- NULL # add here any groups that should not be calibrated
+#no.cal.vector <- c("FPL","FPO")
+
+w.vector <- NULL #use if different weights for functional groups are needed
+#w.vector <- tibble::tibble(Code=c("FPL", "FPO"), weight_new = c(0.5, 0.5))
+
+#make "calibration_settings.csv"
+make_calsettings(fg.file, var.type, fun.type, no.cal.vector, weight.vector)
+
+#create reproduction option file
+
+biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"
+
+setup = calibrar::calibration_setup(file=here::here("inputs","calibration_settings.csv")) 
+observed = calibrar::calibration_data(setup = setup,
+                           path=".", 
+                           file = NULL, 
+                           sep = ",")
+
+# load calibration parameters
+forcing = read.csv(file="calibration-parameters-complete.csv", 
+                     header=TRUE, 
+                     sep=",", 
+                     row.names=1)
+```
+
+
+
+`runModel_Atlantis.R` exposes the `runModel()` function that **calibrar** calls on
+every parameter proposal.  It launches the Atlantis binary, waits for it to
+finish, and returns the model outputs in the format expected by `calibrar`.
+
+```{r source-run-model}
+
+#name of the file that will be saved with calibration parameters
+param.file <- "calibration-parameters.csv"
+#prefix where output files are stored and naming prefix
+prefix  <-  "outputFolder/outputSETAS"
+
+#model files should be stored in /data/model_configuration
+sh.file  <-  "RunAtlantis.sh" #run file
+bio.prm  <-  "VMPA_setas_biol_fishing_Trunk.prm" #biology parameter file
+fg.file <- "SETasGroupsDem.csv" #functional group file
+biom.indx <- "outputSETASBiomIndx.txt" #output biomass index file
+
+run_model(bio.prm,
+         param,
+         names,
+         param.file,
+         sh.file,
+         prefix,
+         bio.prm,
+         fg.file,
+         biom.indx
+         
+)
+```
+
+---
+
+## 2  Calibration setup and observed data
+
+Uses `calibrar` package functions. 
+`calibration_setup()` parses `calibration_settings.csv`, which maps each
+calibration target to its data file, functional group, and weighting scheme.
+`calibration_data()` then loads the corresponding observed time-series.
+
+```{r read-setup}
+#calibration_settings.csv`  
+#Configuration file defining targets location and setup. 
+
+  setup    <- calibrar::calibration_setup(file = "calibration_settings.csv")
+observed <- calibrar::calibration_data(setup = setup, path = ".", sep = ",")
+```
+
+---
+
+## 3  Parameter table
+
+The parameter table drives the optimiser bounds and phasing.  We read it with
+`readr::read_csv()` and keep row names via `tibble::column_to_rownames()` so the
+downstream **calibrar** calls (`forcing['paropt']` etc.) continue to work
+unchanged.
+
+```{r read-parameters}
+forcing <- read_csv(
+  file      = "calibration-parameters-complete.csv",
+  col_types = cols(.default = col_double(), X1 = col_character())
+) %>%
+  column_to_rownames(var = "X1")
+```
+
+A quick look at the parameter space:
+
+```{r inspect-parameters}
+forcing %>%
+  select(paropt, parmin, parmax, parphase) %>%
+  summary()
+```
+
+
+
+## 6  Optimiser control
+
+  Snow's `makeCluster()` is called **without arguments** when Rmpi has already
+initialised the workers; `registerDoSNOW()` connects it to the `foreach` backend
+used internally by **calibrar**.
+
+After `makeCluster()` we push every object and library the workers need:
+
+
+```{r control-list}
+control <- list(
+  maxit        = 5L,
+  maxgen       = 5L,
+  master       = "/home/atlantis/psatlantismodel/Atlantis_Calibration/configuration/",
+  run          = "/home/atlantis/psatlantismodel/Atlantis_Calibration/RUN",
+  restart.file = "/home/atlantis/psatlantismodel/Atlantis_Calibration/restart_file",
+  REPORT       = 1L,    # save a restart every iteration
+  parallel     = TRUE,
+  nCores       = 32L,
+  popsize      = 32L,   # population size = one individual per core
+  trace        = 3L     # report global + partial fitness
+)
+
+  run_calibration(control)
+
+```
+
+| Parameter | Value | Purpose |
+|-----------|-------|---------|
+| `maxit` / `maxgen` | 5 | Maximum optimiser iterations (testing; increase for production) |
+| `popsize` | 32 | Individuals evaluated per generation |
+| `nCores` | 32 | MPI workers — should equal `popsize` for full parallelism |
+| `trace` | 3 | Verbosity: global fitness + per-target contributions |
+  
+
+---
+
+## 8  Run the calibration
+
+The AHR-ES (Adaptive Hierarchical Recombination Evolution Strategy) method is
+well-suited to the noisy, expensive fitness evaluations typical of ecosystem
+model calibration.
+
+## 9  Inspect results
+
+```{r read-results}
+results <- readRDS("restart_file.results")
+```
+
+Extract the best parameter set and compare initial versus optimised values:
+
+```{r compare-parameters}
+param_comparison <- forcing %>%
+  rownames_to_column("parameter") %>%
+  as_tibble() %>%
+  mutate(paropt_new = results$par) %>%
+  select(parameter, paropt, paropt_new, parmin, parmax, parphase)
+
+param_comparison
+```
+
+Plot per-target fitness contributions across iterations:
+
+```{r plot-convergence}
+results$fitness %>%
+  as_tibble() %>%
+  mutate(iteration = row_number()) %>%
+  pivot_longer(-iteration, names_to = "target", values_to = "fitness") %>%
+  ggplot(aes(x = iteration, y = fitness, colour = target)) +
+  geom_line() +
+  scale_y_log10() +
+  labs(
+    title  = "Calibration convergence by target",
+    x      = "Iteration",
+    y      = "Fitness (log scale)",
+    colour = "Target"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## Session info
+
+```{r session-info, eval = TRUE}
+sessionInfo()
+```
