@@ -15,19 +15,20 @@ knitr::opts_chunk$set(
   comment   = "#>",
   eval      = FALSE   # model runs require an Atlantis binary; chunks shown but not executed
 )
+library("magrittr")
 ```
 
 ## Overview
 
 This vignette demonstrates how to calibrate an [Atlantis](https://research.csiro.au/atlantis/)
-ecosystem model using the **calibrar** package with MPI-based parallel computing.
+ecosystem model using the **[Calibrar](https://github.com/roliveros-ramos/calibrar)**.
 The example uses the South East Atlantis Model (SETAS) model configuration and is designed to run on a multi-core server or HPC cluster.
 
 The workflow follows four steps:
 
 1. Create and load calibration configuration and parameters.
 2. Define a custom likelihood function and wrap it into an objective function.
-3. Distribute evaluation across workers with a Snow/MPI cluster.
+3. Distribute evaluation across workers with a cluster.
 4. Run the AHR-ES optimiser and inspect results.
 
 
@@ -45,28 +46,50 @@ var.type <- c("biomass", "weight") #parameters to calibrate
 fun.type <- "lnorm2" #optimization functions see package documentation for additional formulations
 no.cal.vector <- NULL # add here any groups that should not be calibrated
 #no.cal.vector <- c("FPL","FPO")
+dt.timeseries <- 5 #length of calibration in years
 
 w.vector <- NULL #use if different weights for functional groups are needed
 #w.vector <- tibble::tibble(Code=c("FPL", "FPO"), weight_new = c(0.5, 0.5))
 
 #make "calibration_settings.csv"
-make_calsettings(fg.file, var.type, fun.type, no.cal.vector, weight.vector)
+make_calsettings(fg.file, var.type, fun.type, no.cal.vector, w.vector)
+
+calibration.settings <- "calibration_settings.csv"
 
 #create reproduction option file
 
 biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"
+biom.indx <- here::here("inputs","model_configuration","outputFolder","outputSETASBiomIndx.txt")
 
-setup = calibrar::calibration_setup(file=here::here("inputs","calibration_settings.csv")) 
-observed = calibrar::calibration_data(setup = setup,
-                           path=".", 
-                           file = NULL, 
-                           sep = ",")
+create_target_files_biomass(biom.indx, 
+                            fg.file,
+                            repro.file = here::here("inputs","reproduction-option.csv"),
+                            output.path = here::here("inputs"),
+                            not.calibrated = c("PS", "PL", "DC", "DL", "DR"),
+                            dt.timeseries,
+                            mq.groups = c("ZS", "ZM", "ZL"),
+                            unfished = FALSE,
+                            factor.unfished = 1.3)
+# It is possible to create targets for an unfished scenario instead: only fished groups (\code{IsFished == 1}) are included, and their
+#initial biomass is multiplied by
 
-# load calibration parameters
-forcing = read.csv(file="calibration-parameters-complete.csv", 
-                     header=TRUE, 
-                     sep=",", 
-                     row.names=1)
+init.file <- here::here("inputs","model_configuration","INIT_VMPA_Jan2015.nc")
+
+create_target_files_abund(init.file,
+                          output.path = here::here("inputs"),
+                          dt.timeseries)
+
+create_target_files_waa(init.file,
+                        output.path = here::here("inputs"),
+                        dt.timeseries)
+
+catch.file <- here::here("inputs","model_configuration","outputFolder","outputSETASCatch.txt")
+  
+create_target_files_catch(catch.file,
+                          output.path = here::here("inputs"),
+                          dt.timeseries,
+                          weight = 2,
+                          plot = FALSE)
 ```
 
 

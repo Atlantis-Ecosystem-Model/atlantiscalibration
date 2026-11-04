@@ -5,7 +5,7 @@ rm(list=ls())
 # install.packages(.packages, dependencies = TRUE)
 # devtools::install_github("https://github.com/alaiam/atlantis2ls", force = T)
 
-# Load packages into session 
+# Load packages into session
 lapply(.packages, require, character.only=TRUE)
 
 setwd("/home/atlantis/psatlantismodel/Atlantis_Calibration_fishing/")
@@ -14,30 +14,30 @@ source("runModel_Atlantis.R")
 
 # creates a user defined likelihood function
 minmaxt = function(obs, sim) {
-  output = -1e+6*sum(log(pmin((sim+1)/(obs[, 1]+1), 1)), na.rm=TRUE) + 
+  output = -1e+6*sum(log(pmin((sim+1)/(obs[, 1]+1), 1)), na.rm=TRUE) +
     1e+6*sum(log(pmax((sim+1)/(obs[, 2]+1), 1)), na.rm=TRUE)
   return(output)
 }
 
 # reads calibration informations
-setup = calibrar::calibration_setup(file="calibration_settings.csv") 
+setup = calibrar::calibration_setup(file="calibration_settings.csv")
 observed = calibrar::calibration_data(setup = setup,
-                           path=".", 
-                           file = NULL, 
+                           path=".",
+                           file = NULL,
                            sep = ",")
 
 # load calibration parameters
-forcing = read.csv(file="calibration-parameters-complete.csv", 
-                     header=TRUE, 
-                     sep=",", 
+forcing = read.csv(file="calibration-parameters-complete.csv",
+                     header=TRUE,
+                     sep=",",
                      row.names=1)
 
 # create an objective function
 # additional arguments to the runModel function
 # are provided here.
-objfn = calibrar::calibration_objFn(model=runModel, 
-                          setup=setup, 
-                          observed=observed, 
+objfn = calibrar::calibration_objFn(model=runModel,
+                          setup=setup,
+                          observed=observed,
                           aggregate=FALSE,
                           forcing = forcing,
                           names=row.names(forcing))
@@ -62,18 +62,18 @@ cl <-  makeCluster(NumberOfCluster)
 registerDoSNOW (cl)
 
 # send the variables and loaded libraries defined in the above to the nodes
-clusterExport(cl, c("control","objfn", "forcing", "observed", "setup", "minmaxt"))
+clusterExport(cl, c("control","objfn", "forcing", "observed", "setup", "likelihood_function"))
 clusterEvalQ(cl, library("atlantis2ls"))
 clusterEvalQ(cl, library("calibrar"))
 clusterEvalQ(cl, library("stringr"))
 
 # run the calibration
 
-lbfgsb1 = calibrar::calibrate(par=forcing['paropt'], fn=objfn, 
-                    method='AHR-ES', 
+lbfgsb1 = calibrar::calibrate(par=forcing['paropt'], fn=objfn,
+                    method='AHR-ES',
                     lower=forcing['parmin'],
                     upper=forcing['parmax'],
-                    phases=forcing['parphase'], 
+                    phases=forcing['parphase'],
                     control=control, parallel = TRUE)
 
 # stop the cluster

@@ -54,8 +54,8 @@ make_calsettings <- function(fg.file, var.type, fun.type, no.cal.vector, w.vecto
       #subset only age structured groups
       waa.groups <- fg.groups[fg.groups$NumCohorts > 1, ]
 
-      waa.names <- unlist(lapply(seq_len(nrow(waa_groups)), function(i)
-        paste0(waa_groups$Name[i], seq_len(waa_groups$NumCohorts[i]), "_w")
+      waa.names <- unlist(lapply(seq_len(nrow(waa.groups)), function(i)
+        paste0(waa.groups$Name[i], seq_len(waa.groups$NumCohorts[i]), "_w")
       ))
 
       waa.code <- rep(waa.groups$Code, times = waa.groups$NumCohorts)
@@ -81,9 +81,9 @@ make_calsettings <- function(fg.file, var.type, fun.type, no.cal.vector, w.vecto
   }
 
   # Apply custom weights if provided
-  if(!is.null(weight.vector)){
+  if(!is.null(w.vector)){
     cal.settings <- cal.settings %>%
-      dplyr::left_join(weight.vector, by="Code") %>%
+      dplyr::left_join(w.vector, by="Code") %>%
       dplyr::mutate(weight=dplyr::if_else(!is.na(weight_new), weight_new, weight)) %>%
       dplyr::select(-weight_new)
   }

@@ -9,7 +9,7 @@
 #' environment: \code{objfn} (the objective function), \code{forcing}
 #' (a list with elements \code{paropt}, \code{parmin}, \code{parmax}, and
 #' \code{parphase}), \code{observed} (calibration targets), \code{setup},
-#' and \code{minmaxt}.
+#' and \code{likelihood_function}.
 #'
 #' @param control A named list of calibration control parameters passed to
 #'   \code{\link[calibrar]{calibrate}}.  Must contain at minimum
@@ -32,7 +32,7 @@ run_calibration <- function(control){
 
   # Objects required on each worker
   clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed",
-                                "setup",   "minmaxt"))
+                                "setup",   "likelihood_function"))
 
   # Libraries required on each worker
   list("atlantis2ls", "calibrar", "stringr") %>%

@@ -7,7 +7,7 @@ doSNOW::registerDoSNOW(cl)
 
 # Objects required on each worker
 clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed",
-                              "setup",   "minmaxt"))
+                              "setup",   "likelihood_function"))
 
 # Libraries required on each worker
 list("atlantis2ls", "calibrar", "stringr") %>%
