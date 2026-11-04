@@ -38,7 +38,7 @@ create_target_files_abund <- function(init.file,
                                       output.path = here::here("inputs"),
                                       dt.timeseries = 5){
 
-  initial.condi <- ncdf4::nc_open(init.file)
+  initial.condi <- ncdf4::nc_open(here::here("inputs","model_configuration",init.file))
   on.exit(ncdf4::nc_close(initial.condi))
 
   data.path <- file.path(output.path, "data")

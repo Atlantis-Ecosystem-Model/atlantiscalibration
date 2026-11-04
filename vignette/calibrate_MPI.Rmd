@@ -59,11 +59,11 @@ calibration.settings <- "calibration_settings.csv"
 #create reproduction option file
 
 biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"
-biom.indx <- here::here("inputs","model_configuration","outputFolder","outputSETASBiomIndx.txt")
+biom.indx <- "outputSETASBiomIndx.txt"
 
 create_target_files_biomass(biom.indx, 
                             fg.file,
-                            repro.file = here::here("inputs","reproduction-option.csv"),
+                            repro.file ="reproduction-option.csv",
                             output.path = here::here("inputs"),
                             not.calibrated = c("PS", "PL", "DC", "DL", "DR"),
                             dt.timeseries,
@@ -73,7 +73,7 @@ create_target_files_biomass(biom.indx,
 # It is possible to create targets for an unfished scenario instead: only fished groups (\code{IsFished == 1}) are included, and their
 #initial biomass is multiplied by
 
-init.file <- here::here("inputs","model_configuration","INIT_VMPA_Jan2015.nc")
+init.file <- "INIT_VMPA_Jan2015.nc"
 
 create_target_files_abund(init.file,
                           output.path = here::here("inputs"),
@@ -83,13 +83,15 @@ create_target_files_waa(init.file,
                         output.path = here::here("inputs"),
                         dt.timeseries)
 
-catch.file <- here::here("inputs","model_configuration","outputFolder","outputSETASCatch.txt")
+#uses a catch time series as target
+catch.file <- "catch_timeseries.csv"
   
 create_target_files_catch(catch.file,
                           output.path = here::here("inputs"),
                           dt.timeseries,
                           weight = 2,
-                          plot = FALSE)
+                          plot = FALSE, 
+                          fg.file)
 ```
 
 

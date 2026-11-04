@@ -84,8 +84,8 @@ create_target_files_biomass <- function(biom.indx, fg.file,
                                         factor.unfished = 1.3){
 
   config <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
-  biom.data <- data.table::fread(biom.indx, header = TRUE, check.names = FALSE)
-  repro.option <- utils::read.csv(repro.file)
+  biom.data <- data.table::fread(here::here("inputs","model_configuration","outputFolder",biom.indx), header = TRUE, check.names = FALSE)
+  repro.option <- utils::read.csv(here::here("inputs",repro.file))
 
   # Suffix for output files, so unfished outputs do not overwrite standard ones
   suffix <- if (unfished) "_unfished" else ""

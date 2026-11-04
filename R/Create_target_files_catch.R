@@ -45,24 +45,25 @@ create_target_files_catch <- function(catch.file,
                                       output.path = here::here("inputs"),
                                       dt.timeseries = 5,
                                       weight = 2,
-                                      plot = FALSE,
-                                      ){
+                                      plot = FALSE){
 
-  row_data <- readr::read_table(catch.file)
 
-  cal.period.ts = dt.timeseries * 365
+  data.path <- file.path(output.path, "data")
+  dir.create(data.path, showWarnings = FALSE, recursive = TRUE)
+
+    # Total annual catch per group
+
+  row_data <- readr::read_csv(here::here("inputs","model_configuration",catch.file))
+  fg.groups <- readr::read_csv(here::here("inputs","model_configuration",fg.file))
+
 
   data.path <- file.path(output.path, "data")
   dir.create(data.path, showWarnings = FALSE, recursive = TRUE)
 
   # Total annual catch per group
   total_catch_sp <- row_data |>
-    dplyr::filter(Time <= cal.period.ts) |>
-    dplyr::select(-dplyr::contains("TsArow")) |>
-    tidyr::pivot_longer(cols = (-Time),
-                        names_to = "Code", values_to = "catch_tons") |>
-    dplyr::group_by(Code, year) |>
-    dplyr::summarise(catch_tons = sum(catch_tons), .groups = "drop")
+
+
 
   species <- unique(total_catch_sp$Name)
 
