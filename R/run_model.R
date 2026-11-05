@@ -2,7 +2,7 @@
 #' @title Run one step of the Atlantis calibration model
 #' @description
 #' Core objective function designed for use with the \pkg{calibrar} package.
-#' Receives a log-scale parameter vecto r, back-transforms it via \code{exp()},
+#' Receives a log-scale parameter vector, back-transforms it via \code{exp()},
 #' writes a parameter snapshot CSV, edits the relevant entries in the Atlantis
 #' biology parameter file (\code{bio.prm}), executes the simulation via a shell
 #' script, reads the outputs, and returns a named list of modeled indicators
@@ -56,7 +56,7 @@ run_model   <-  function(bio.prm,
   # set parameter names
   names(param) = names
   param = exp(param)
-  write.table(param, file=param.file, sep=",",
+  utils::write.table(param, file=param.file, sep=",",
               col.names=FALSE, quote=FALSE)
   mum.factor = grep(x=names, pattern="mum")
   BHalpha.factor = grep(x=names, pattern="BHalpha")
@@ -70,7 +70,7 @@ run_model   <-  function(bio.prm,
       species <- sub("mum_", "", species)
       species <- sub("_factor", "", species)
 
-      bio.lines = atlantis2ls::edit_param_mum_sp(bio.lines, factor, species)
+      bio.lines = edit_param_mum_sp(bio.lines, factor, species)
     }
     for (i in 1:length(BHalpha.factor)){
       species <- names[BHalpha.factor[i]]
@@ -78,7 +78,7 @@ run_model   <-  function(bio.prm,
       species <- sub("BHalpha_", "", species)
       species <- sub("_factor", "", species)
 
-      bio.lines = atlantis2ls::edit_param_BHalpha_sp(bio.lines, factor, species)
+      bio.lines = edit_param_BHalpha_sp(bio.lines, factor, species)
     }
 
     for (i in 1:length(KDENR.factor)){
@@ -86,14 +86,14 @@ run_model   <-  function(bio.prm,
       factor  <- param[KDENR.factor[i]]
       species <- sub("KDENR_", "", species)
       species <- sub("_factor", "", species)
-      bio.lines = atlantis2ls::edit_param_KDENR_sp(bio.lines, factor, species)
+      bio.lines = edit_param_KDENR_sp(bio.lines, factor, species)
     }
 
     for (i in 1:length(mq.factor)){
       species <- names[mq.factor[i]]
       factor  <- param[mq.factor[i]]
       species <- sub("_mQ_factor", "", species)
-      bio.lines = atlantis2ls::edit_param_mq_sp(bio.lines, factor, species)
+      bio.lines = edit_param_mq_sp(bio.lines, factor, species)
     }
 
     writeLines(bio.lines, "bio.prm")
@@ -103,7 +103,7 @@ run_model   <-  function(bio.prm,
     # run Atlantis
     path = getwd()
 
-    atlantis2ls::run_atlantis(path = path, sh.file = sh.file)
+    run_atlantis(path = path, sh.file = sh.file)
 
     outputs <- read_outputs(path = path, prefix = prefix, fg.file = fg.file,
                                           txt.filename = biom.indx)
@@ -115,9 +115,9 @@ run_model   <-  function(bio.prm,
     if(length(atlantis.biomass)==2){
       # Check if the configuration has run, if not return 0
       dt.timestep = 2 # Equal to the number of timestep in data
-      fg.data <- read.csv(fg.file)
+      fg.data <- utils::read.csv(fg.file)
       fg.data <- fg.data[fg.data$IsTurnedOn == 1, ]
-      biomass_zeros <- setNames(
+      biomass_zeros <- stats::setNames(
         lapply(fg.data$Code, function(x) rep(0, dt.timestep)),
         paste0(fg.data$Code, "_biomass")
       )
@@ -125,7 +125,7 @@ run_model   <-  function(bio.prm,
       waa_names <- unlist(lapply(seq_len(nrow(waa_groups)), function(i)
         paste0(waa_groups$Name[i], seq_len(waa_groups$NumCohorts[i]), "_w")
       ))
-      waa_zeros <- setNames(
+      waa_zeros <- stats::setNames(
         lapply(waa_names, function(x) rep(0, dt.timestep)),
         waa_names
       )

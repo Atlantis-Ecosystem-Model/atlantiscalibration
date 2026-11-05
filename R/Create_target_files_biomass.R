@@ -15,8 +15,9 @@
 #'   \item \code{calibration_settings.csv}: calibration settings for each
 #'     biomass target.
 #'   \item \code{calibration-parameters-complete.csv}: parameter factors to
-#'     estimate (\code{mum}, \code{BHalpha}, \code{KDENR}, \code{mfc} and
-#'     \code{mQ}), with initial values, bounds and phase.
+#'     estimate, chosen in \code{bio.parameters} (any of \code{mum},
+#'     \code{BHalpha}, \code{KDENR}, \code{mfc} and \code{mQ}), with initial
+#'     values, bounds and phase.
 #'   \item \code{biomass.txt} and \code{biomass_crash.txt}: R code snippets
 #'     used to build the output list of the run model function, for a
 #'     successful run and for a crashed run (all zeros), respectively.
@@ -69,6 +70,11 @@
 #'   \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
 #'   and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
 #'   \code{biomass_timeseries.csv}.
+#' @param biology.prm Character.  Name of the Atlantis biology parameter file
+#'   in \code{inputs/model_configuration}.
+#' @param bio.parameters Character vector.  Parameters to calibrate, any of
+#'   \code{"mum"}, \code{"BHalpha"}, \code{"KDENR"}, \code{"mfc"} and
+#'   \code{"mQ"} (not case sensitive).  Default: all five.
 #'
 #' @return Invisibly, a named list with elements \code{settings} (calibration
 #'   settings data frame) and \code{parameters} (calibration parameters data
@@ -104,12 +110,14 @@ create_target_files_biomass <- function(biom.indx = NULL,
                                         not.calibrated,
                                         dt.timeseries = 5,
                                         mq.groups = c("ZS", "ZM", "ZL"),
+                                        ml.groups = c("ZS", "ZM", "ZL"),
                                         unfished = FALSE,
                                         factor.unfished = 1.3,
                                         initial.conditions = TRUE,
                                         time.series = FALSE,
                                         biomass.file = "biomass_timeseries.csv",
-                                        biology.prm){
+                                        biology.prm,
+                                        bio.parameters = c("mum", "BHalpha", "KDENR", "mfc", "mQ")){
 
   # Targets come from either initial conditions or an observed time series
   if (initial.conditions == time.series){
@@ -229,18 +237,38 @@ create_target_files_biomass <- function(biom.indx = NULL,
 
   Bio.groups_repro <- merge(Bio.groups, repro.option, by = "Code")
 
-  calib.param <- rbind(
-    # mum
-    make_param("mum_", Bio.groups$Code, "_factor"),
-    # BHalpha
-    make_param("BHalpha_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit != 12], "_factor"),
-    # KDENR
-    make_param("KDENR_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit == 12], "_factor"),
-    # mfc, not needed when fishing is turned off
-    make_param("mfc_", if (unfished) character(0) else Bio.groups$Code[Bio.groups$IsFished == 1], "_factor"),
-    # mQ
-    make_param("", mq.groups, "_mQ_factor")
-  )
+  # Only the parameters chosen in bio.parameters are created
+  calib.param.ls <- list()
+
+  for (eachparameter in tolower(bio.parameters)){
+
+    calib.param.ls[[eachparameter]] <- switch(eachparameter,
+      # mum
+      "mum" = make_param("mum_", Bio.groups$Code, "_factor"),
+      # BHalpha
+      "bhalpha" = make_param("BHalpha_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit != 12], "_factor"),
+      # BHbeta
+      "bhbeta" = make_param("BHbeta_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit != 12], "_factor"),
+      # KDENR
+      "kdenr" = make_param("KDENR_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit == 12], "_factor"),
+      # mfc, not needed when fishing is turned off
+      "mfc" = make_param("mfc_", if (unfished) character(0) else Bio.groups$Code[Bio.groups$IsFished == 1], "_factor"),
+      # mQ
+      "mq" = make_param("", mq.groups, "_mQ_factor"),
+      # ml
+      "ml" = make_param("", ml.groups, "_ml_factor"),
+      # C
+      "c" = make_param("C_", Bio.groups$Code, "_factor"),
+      # E
+      "e" = make_param("E_", Bio.groups$Code, "_factor"),
+
+
+      stop("Unknown parameter in bio.parameters: ", eachparameter,
+           ". Use any of mum, BHalpha, Bhbeta, KDENR, mfc, mQ, ml, C, and E")
+    )
+  }
+
+  calib.param <- do.call(rbind, unname(calib.param.ls))
 
   utils::write.csv(calib.param, file.path(output.path, if (unfished) "calibration-parameters-unfished.csv" else "calibration-parameters-complete.csv"), row.names = FALSE)
 

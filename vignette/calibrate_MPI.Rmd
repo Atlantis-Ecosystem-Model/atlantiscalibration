@@ -65,8 +65,12 @@ biom.timeseries <- "biomass_timeseries.csv"
 
 #this function creates the calibration settings for all groups in the functional group file
 
+bio.parameters <- c("mum", "Bhalpha", "KDENR", "mfc", "mq", "C") #parameters that will be calibrated. Current options are mum, BHalpha, Bhbeta, KDENR, mfc, mQ, ml, C, and E
+  
+  
 var.type <- c("biomass", "weight", "abundance","catch") #target types to calibrate: "biomass", "weight", "abundance" and/or "catch"
 mq.groups <- c("ZS", "ZM", "ZL") # Codes of the groups for which an mQ factor is calibrated.  
+ml.groups <- c("ZS", "ZM", "ZL") # Codes of the groups for which an ml factor is calibrated.  
 fun.type <- "lnorm2" #optimization functions see package documentation for additional formulations
 no.cal.vector <- NULL # add here any groups that should not be calibrated
 #no.cal.vector <- c("FPL","FPO") #example: group codes excluded from calibration
@@ -88,7 +92,9 @@ make_calsettings(fg.file,
                  biom.indx,
                  init.file,
                  catch.file,
-                 mq.groups)
+                 mq.groups,
+                 ml.groups,
+                 bio.parameters)
 
 ```
 

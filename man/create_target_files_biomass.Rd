@@ -16,7 +16,8 @@ create_target_files_biomass(
   factor.unfished = 1.3,
   initial.conditions = TRUE,
   time.series = FALSE,
-  biomass.file = "biomass_timeseries.csv"
+  biomass.file = "biomass_timeseries.csv",
+  biology.prm
 )
 }
 \arguments{
@@ -64,6 +65,9 @@ Default: \code{FALSE}.}
 \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
 and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
 \code{biomass_timeseries.csv}.}
+
+\item{biology.prm}{Character.  Name of the Atlantis biology parameter file
+in \code{inputs/model_configuration}.}
 }
 \value{
 Invisibly, a named list with elements \code{settings} (calibration

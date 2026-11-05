@@ -4,26 +4,56 @@
 #' Creates a dataframe specifying which groups to calibrate, their associated variables,
 #' calibration weights, and data file paths.
 #'
+#' Only groups with \code{IsTurnedOn == 1} and \code{IsCalibrated == 1} in the
+#' functional group file are calibrated.  For each target type in
+#' \code{var.type}, the corresponding target files are also created (see
+#' \code{\link{create_target_files_biomass}},
+#' \code{\link{create_target_files_waa}},
+#' \code{\link{create_target_files_abund}} and
+#' \code{\link{create_target_files_catch}}).
+#'
 #' @param fg.file Character. Name of the functional group configuration file (CSV) located
-#'   in inputs/model_configuration/
-#' @param var.type Character. Variable type suffix (e.g., "biomass", "recruitment")
+#'   in inputs/model_configuration/.  Must contain the columns \code{Code},
+#'   \code{Name}, \code{IsTurnedOn}, \code{IsCalibrated} and \code{NumCohorts}.
+#' @param var.type Character vector. Target types to calibrate: any of
+#'   "biomass", "weight", "abundance" and "catch".
 #' @param fun.type Character. Calibrar package optimization function for calibration
-#' @param no.cal.vector Character vector. Optional group codes to exclude from calibration.
-#'   If NULL, all groups are calibrated.
+#' @param dt.timeseries Integer. Number of time steps in each target time series.
 #' @param w.vector Data frame. Optional custom weights with columns "Code" and
-#'   "weight_new" to override default weights.
+#'   "weight_new" to override default weights.  If NULL, default weights are used.
+#' @param biology.prm Character. Name of the Atlantis biology parameter file in
+#'   inputs/model_configuration/.
+#' @param biom.indx Character. Name of the Atlantis biomass index output file
+#'   (\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.
+#' @param init.file Character. Name of the Atlantis initial conditions NetCDF
+#'   file, used to create weight-at-age and abundance targets.
+#' @param catch.file Character. Name of the observed catch CSV file, used to
+#'   create catch targets.
+#' @param mq.groups Character vector. Codes of the groups for which an
+#'   \code{mQ} factor is calibrated.
+#' @param bio.parameters Character vector. Parameters to calibrate, any of
+#'   "mum", "BHalpha", "KDENR", "mfc" and "mQ" (not case sensitive).
 #'
 #' @return Invisibly returns NULL. Writes calibration settings CSV to
 #'   inputs/calibration_settings.csv
 #'
 #' @examples
 #' \dontrun{
-#' make_calsettings(fg.file, var.type, fun.type, no.cal.vector, w.vector)
+#' make_calsettings(fg.file       = "SETasGroupsDem.csv",
+#'                  var.type      = c("biomass", "weight"),
+#'                  fun.type      = "lnorm2",
+#'                  dt.timeseries = 5,
+#'                  w.vector      = NULL,
+#'                  biology.prm   = "VMPA_setas_biol_fishing_Trunk.prm",
+#'                  biom.indx     = "outputSETASBiomIndx.txt",
+#'                  init.file     = "INIT_VMPA_Jan2015.nc",
+#'                  catch.file    = "catch_timeseries.csv",
+#'                  mq.groups     = c("ZS", "ZM", "ZL"))
 #' }
 #'
 #' @export
 make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
-                             w.vector, biology.prm, biom.indx, init.file, catch.file, mq.groups){
+                             w.vector, biology.prm, biom.indx, init.file, catch.file, mq.groups, ml.groups, bio.parameters){
 
   # Read functional group configuration file
   fg.groups <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
@@ -68,12 +98,14 @@ make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
                                   not.calibrated=no.cal.vector,
                                   dt.timeseries = dt.timeseries,
                                   mq.groups = mq.groups,
+                                  ml.groups = ml.groups,
                                   unfished = FALSE,
                                   factor.unfished = 1.3,
                                   initial.conditions = TRUE,
                                   time.series = FALSE,
                                   biomass.file = "biomass_timeseries.csv",
-                                  biology.prm)
+                                  biology.prm = biology.prm,
+                                  bio.parameters = bio.parameters)
       # It is possible to create targets for an unfished scenario instead: only fished groups (\code{IsFished == 1}) are included, and their
       #initial biomass is multiplied by
 

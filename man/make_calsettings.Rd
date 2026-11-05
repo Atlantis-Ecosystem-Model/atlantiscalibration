@@ -13,22 +13,39 @@ make_calsettings(
   biology.prm,
   biom.indx,
   init.file,
-  catch.file
+  catch.file,
+  mq.groups
 )
 }
 \arguments{
 \item{fg.file}{Character. Name of the functional group configuration file (CSV) located
-in inputs/model_configuration/}
+in inputs/model_configuration/.  Must contain the columns \code{Code},
+\code{Name}, \code{IsTurnedOn}, \code{IsCalibrated} and \code{NumCohorts}.}
 
-\item{var.type}{Character. Variable type suffix (e.g., "biomass", "recruitment")}
+\item{var.type}{Character vector. Target types to calibrate: any of
+"biomass", "weight", "abundance" and "catch".}
 
 \item{fun.type}{Character. Calibrar package optimization function for calibration}
 
-\item{w.vector}{Data frame. Optional custom weights with columns "Code" and
-"weight_new" to override default weights.}
+\item{dt.timeseries}{Integer. Number of time steps in each target time series.}
 
-\item{no.cal.vector}{Character vector. Optional group codes to exclude from calibration.
-If NULL, all groups are calibrated.}
+\item{w.vector}{Data frame. Optional custom weights with columns "Code" and
+"weight_new" to override default weights.  If NULL, default weights are used.}
+
+\item{biology.prm}{Character. Name of the Atlantis biology parameter file in
+inputs/model_configuration/.}
+
+\item{biom.indx}{Character. Name of the Atlantis biomass index output file
+(\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.}
+
+\item{init.file}{Character. Name of the Atlantis initial conditions NetCDF
+file, used to create weight-at-age and abundance targets.}
+
+\item{catch.file}{Character. Name of the observed catch CSV file, used to
+create catch targets.}
+
+\item{mq.groups}{Character vector. Codes of the groups for which an
+\code{mQ} factor is calibrated.}
 }
 \value{
 Invisibly returns NULL. Writes calibration settings CSV to
@@ -38,10 +55,27 @@ inputs/calibration_settings.csv
 Generates a calibration settings file for functional groups in an Atlantis model.
 Creates a dataframe specifying which groups to calibrate, their associated variables,
 calibration weights, and data file paths.
+
+Only groups with \code{IsTurnedOn == 1} and \code{IsCalibrated == 1} in the
+functional group file are calibrated.  For each target type in
+\code{var.type}, the corresponding target files are also created (see
+\code{\link{create_target_files_biomass}},
+\code{\link{create_target_files_waa}},
+\code{\link{create_target_files_abund}} and
+\code{\link{create_target_files_catch}}).
 }
 \examples{
 \dontrun{
-make_calsettings(fg.file, var.type, fun.type, no.cal.vector, w.vector)
+make_calsettings(fg.file       = "SETasGroupsDem.csv",
+                 var.type      = c("biomass", "weight"),
+                 fun.type      = "lnorm2",
+                 dt.timeseries = 5,
+                 w.vector      = NULL,
+                 biology.prm   = "VMPA_setas_biol_fishing_Trunk.prm",
+                 biom.indx     = "outputSETASBiomIndx.txt",
+                 init.file     = "INIT_VMPA_Jan2015.nc",
+                 catch.file    = "catch_timeseries.csv",
+                 mq.groups     = c("ZS", "ZM", "ZL"))
 }
 
 }

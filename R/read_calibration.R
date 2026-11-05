@@ -1,3 +1,30 @@
+#' Read calibration inputs and save the optimiser control settings
+#'
+#' Reads the calibration settings and observed targets with \pkg{calibrar},
+#' reads the calibration parameters table, and builds the objective function
+#' with \code{\link[calibrar]{calibration_objFn}}.  Writes the parameters to
+#' \code{inputs/forcing.csv} and the optimiser control list to
+#' \code{inputs/control.rds}.
+#'
+#' @param calibration.settings Character.  Name of the calibration settings
+#'   CSV file in \code{inputs} (e.g. \code{"calibration_settings.csv"}), as
+#'   written by \code{\link{make_calsettings}}.
+#' @param calibration.parameters Character.  Name of the calibration
+#'   parameters CSV file in \code{inputs} (e.g.
+#'   \code{"calibration-parameters-complete.csv"}), with parameter names in
+#'   the first column.
+#'
+#' @return Invisibly, a named list with elements \code{setup},
+#'   \code{observed}, \code{forcing}, \code{objfn} (see
+#'   \code{\link{make_objfn}}) and \code{control}.  Also writes
+#'   \code{inputs/forcing.csv} and \code{inputs/control.rds}.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   read_calibration(calibration.settings   = "calibration_settings.csv",
+#'                    calibration.parameters = "calibration-parameters-complete.csv")
+#' }
 read_calibration <- function(calibration.settings, calibration.parameters){
 
    setup  <- calibrar::calibration_setup(file=here::here("inputs",calibration.settings))
@@ -9,22 +36,15 @@ read_calibration <- function(calibration.settings, calibration.parameters){
 
 
   # load calibration parameters
-  forcing = read.csv(file=here::here("inputs",calibration.parameters),
-                     header=TRUE,
-                     sep=",",
-                     row.names=1)
+  forcing = utils::read.csv(file=here::here("inputs",calibration.parameters),
+                            header=TRUE,
+                            sep=",",
+                            row.names=1)
 
   readr::write_csv(forcing, file=here::here("inputs","forcing.csv"))
 
   # create an objective function
-  # additional arguments to the runModel function
-  # are provided here.
-  objfn = calibrar::calibration_objFn(model=runModel,
-                                      setup=setup,
-                                      observed=observed,
-                                      aggregate=FALSE,
-                                      forcing = forcing,
-                                      names=row.names(forcing))
+  objfn <- make_objfn(setup, observed, forcing)
 
   control = list()
   control$maxit = c(5)   # maximum number of iterations (former gen.max parameter)
@@ -40,5 +60,7 @@ read_calibration <- function(calibration.settings, calibration.parameters){
 
   saveRDS(control, file = here::here("inputs","control.rds"))
 
+  invisible(list(setup = setup, observed = observed, forcing = forcing,
+                 objfn = objfn, control = control))
 }
 
