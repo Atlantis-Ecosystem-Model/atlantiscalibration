@@ -1,9 +1,14 @@
-#' Create biomass target files and calibration inputs from initial conditions
+#' Create biomass target files and calibration inputs
 #'
-#' Uses the initial biomass of each functional group (first time step of the
-#' Atlantis \code{<prefix>_OUTBiomIndx.txt} output) as a constant target for
-#' \pkg{calibrar}, and writes all the files needed to set up a biomass
-#' calibration:
+#' Creates biomass targets for \pkg{calibrar} from one of two sources:
+#' \itemize{
+#'   \item \code{initial.conditions = TRUE} (default): the initial biomass of
+#'     each functional group (first time step of the Atlantis
+#'     \code{<prefix>_OUTBiomIndx.txt} output) is used as a constant target.
+#'   \item \code{time.series = TRUE}: the observed biomass time series of each
+#'     group in \code{biomass.file} is used as the target.
+#' }
+#' Writes all the files needed to set up a biomass calibration:
 #' \itemize{
 #'   \item \code{data/<Code>_biomass.csv}: one target time series per
 #'     calibrated group, with columns \code{Time} and \code{Biomass}.
@@ -32,7 +37,8 @@
 #' in this case, as fishing is turned off.
 #'
 #' @param biom.indx Character.  Path to the Atlantis biomass index text file
-#'   (\code{<prefix>_OUTBiomIndx.txt}).
+#'   (\code{<prefix>_OUTBiomIndx.txt}).  Required when
+#'   \code{initial.conditions = TRUE}.  Default: \code{NULL}.
 #' @param fg.file Character.  Path to the functional groups CSV file.  Must
 #'   contain the columns \code{Code}, \code{Name} and \code{IsFished}.
 #' @param repro.file Character.  Path to the reproduction option CSV file with
@@ -53,6 +59,16 @@
 #' @param factor.unfished Numeric.  Factor applied to the initial biomass of
 #'   fished groups to obtain the unfished biomass target.  Only used when
 #'   \code{unfished = TRUE}.  Default: \code{1.3}.
+#' @param initial.conditions Logical.  If \code{TRUE}, use the initial biomass
+#'   in \code{biom.indx} as a constant target.  Default: \code{TRUE}.
+#' @param time.series Logical.  If \code{TRUE}, use the observed biomass time
+#'   series in \code{biomass.file} as the target.  Exactly one of
+#'   \code{initial.conditions} and \code{time.series} must be \code{TRUE}.
+#'   Default: \code{FALSE}.
+#' @param biomass.file Character.  Name of the observed biomass CSV file in
+#'   \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
+#'   and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
+#'   \code{biomass_timeseries.csv}.
 #'
 #' @return Invisibly, a named list with elements \code{settings} (calibration
 #'   settings data frame) and \code{parameters} (calibration parameters data
@@ -73,18 +89,37 @@
 #'     fg.file       = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv",
 #'     unfished      = TRUE
 #'   )
+#'
+#'   # Observed biomass time series as target
+#'   create_target_files_biomass(
+#'     fg.file            = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv",
+#'     initial.conditions = FALSE,
+#'     time.series        = TRUE
+#'   )
 #' }
-create_target_files_biomass <- function(biom.indx, fg.file,
-                                        repro.file = here::here("inputs", "reproduction-option.csv"),
+create_target_files_biomass <- function(biom.indx = NULL,
+                                        fg.file,
+                                        repro.file = "reproduction-option.csv",
                                         output.path = here::here("inputs"),
-                                        not.calibrated = c("PS", "PL", "DC", "DL", "DR"),
+                                        not.calibrated,
                                         dt.timeseries = 5,
                                         mq.groups = c("ZS", "ZM", "ZL"),
                                         unfished = FALSE,
-                                        factor.unfished = 1.3){
+                                        factor.unfished = 1.3,
+                                        initial.conditions = TRUE,
+                                        time.series = FALSE,
+                                        biomass.file = "biomass_timeseries.csv",
+                                        biology.prm){
+
+  # Targets come from either initial conditions or an observed time series
+  if (initial.conditions == time.series){
+    stop("Set exactly one of initial.conditions or time.series to TRUE")
+  }
+  if (initial.conditions && is.null(biom.indx)){
+    stop("biom.indx is required when initial.conditions = TRUE")
+  }
 
   config <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
-  biom.data <- data.table::fread(here::here("inputs","model_configuration","outputFolder",biom.indx), header = TRUE, check.names = FALSE)
   repro.option <- utils::read.csv(here::here("inputs",repro.file))
 
   # Suffix for output files, so unfished outputs do not overwrite standard ones
@@ -101,32 +136,69 @@ create_target_files_biomass <- function(biom.indx, fg.file,
   # Create data files
   ##################
 
-  # Initial biomass is the first time step of the biomass index
-  Bio.ini <- biom.data[1, ] |>
-    dplyr::select(-dplyr::contains("Rel"), -Time) |>
-    tidyr::pivot_longer(cols = dplyr::everything(),
-                        names_to = "Code", values_to = "Ini") |>
-    dplyr::mutate(Ini = round(as.numeric(Ini)))
+  if (initial.conditions){
 
-  Bio.ini <- merge(Bio.ini, config[, c("Code", "Name", "IsCalibrated", "IsFished")], by = "Code")
-  Bio.ini <- Bio.ini[Bio.ini$IsCalibrated == 1, ]
-  Bio.ini$Biomass <- Bio.ini$Ini
+    # Initial biomass is the first time step of the biomass index
 
-  # Unfished scenario: only fished groups, with scaled initial biomass
-  if (unfished){
-    Bio.ini <- Bio.ini[Bio.ini$IsFished == 1, ]
-    Bio.ini$Biomass <- Bio.ini$Ini * factor.unfished
+    biom.data <- data.table::fread(here::here("inputs","model_configuration","outputFolder",biom.indx), header = TRUE, check.names = FALSE)
+
+    Bio.ini <- biom.data[1, ] |>
+      dplyr::select(-dplyr::contains("Rel"), -Time) |>
+      tidyr::pivot_longer(cols = dplyr::everything(),
+                          names_to = "Code", values_to = "Ini") |>
+      dplyr::mutate(Ini = round(as.numeric(Ini)))
+
+    Bio.ini <- merge(Bio.ini, config[, c("Code", "Name", "IsCalibrated", "IsFished")], by = "Code")
+    Bio.ini <- Bio.ini[Bio.ini$IsCalibrated == 1, ]
+    Bio.ini$Biomass <- Bio.ini$Ini
+
+    # Unfished scenario: only fished groups, with scaled initial biomass
+    if (unfished){
+      Bio.ini <- Bio.ini[Bio.ini$IsFished == 1, ]
+      Bio.ini$Biomass <- Bio.ini$Ini * factor.unfished
+    }
+
+    for (i in seq_along(Bio.ini$Code)){
+      data <- data.frame(Time = 1:dt.timeseries, Biomass = rep(Bio.ini$Biomass[i], dt.timeseries))
+      utils::write.csv(data, file.path(data.path, paste0(Bio.ini$Code[i], "_biomass.csv")), row.names = FALSE)
+    }
+
+    Bio.groups <- Bio.ini
   }
 
-  for (i in seq_along(Bio.ini$Code)){
-    data <- data.frame(Time = 1:dt.timeseries, Biomass = rep(Bio.ini$Biomass[i], dt.timeseries))
-    utils::write.csv(data, file.path(data.path, paste0(Bio.ini$Code[i], "_biomass.csv")), row.names = FALSE)
+  if (time.series){
+
+    # Observed biomass time series, with columns Code, Year and Biomass
+
+    biom.data <- readr::read_csv(here::here("inputs","model_configuration",biomass.file))
+
+    Bio.ts <- merge(biom.data, config[, c("Code", "Name", "IsCalibrated", "IsFished")], by = "Code")
+    Bio.ts <- Bio.ts[Bio.ts$IsCalibrated == 1, ]
+
+    # Unfished scenario: only fished groups, with scaled biomass
+    if (unfished){
+      Bio.ts <- Bio.ts[Bio.ts$IsFished == 1, ]
+      Bio.ts$Biomass <- Bio.ts$Biomass * factor.unfished
+    }
+
+    Bio.groups <- unique(Bio.ts[, c("Code", "Name", "IsCalibrated", "IsFished")])
+
+    for (i in Bio.groups$Code){
+      a <- Bio.ts[Bio.ts$Code == i, ]
+      a <- a[order(a$Year), ]
+      if (nrow(a) != dt.timeseries){
+        warning("Biomass time series for ", i, " has ", nrow(a),
+                " years but dt.timeseries is ", dt.timeseries)
+      }
+      data <- data.frame(Time = a$Year, Biomass = a$Biomass)
+      utils::write.csv(data, file.path(data.path, paste0(i, "_biomass.csv")), row.names = FALSE)
+    }
   }
 
   ##################
   # Create calibration setting file
   ##################
-  variable <- paste0(Bio.ini$Code, "_biomass")
+  variable <- paste0(Bio.groups$Code, "_biomass")
 
   settings <- data.frame(
     variable = variable,
@@ -143,7 +215,7 @@ create_target_files_biomass <- function(biom.indx, fg.file,
   ##################
   # Create code for runModel function
   ##################
-  R_code <- paste0(variable, ' = unname(atlantis.biomass["', Bio.ini$Code, '"]), ')
+  R_code <- paste0(variable, ' = unname(atlantis.biomass["', Bio.groups$Code, '"]), ')
   writeLines(R_code, con = file.path(output.path, paste0("biomass", suffix, ".txt")))
 
   R_code <- paste0(variable, ' = rep(0,', dt.timeseries, '), ')
@@ -153,28 +225,19 @@ create_target_files_biomass <- function(biom.indx, fg.file,
   # Create parameter files
   ##################
   # paste0() on an empty vector would return a single malformed name
-  make_param <- function(prefix, codes, suffix){
-    names <- if (length(codes) > 0) paste0(prefix, codes, suffix) else character(0)
-    data.frame(
-      names = names,
-      paropt = rep(0, length(names)),
-      parmin = rep(-1, length(names)),
-      parmax = rep(1, length(names)),
-      parphase = rep(1, length(names))
-    )
-  }
 
-  Bio.ini_repro <- merge(Bio.ini, repro.option, by = "Code")
+
+  Bio.groups_repro <- merge(Bio.groups, repro.option, by = "Code")
 
   calib.param <- rbind(
     # mum
-    make_param("mum_", Bio.ini$Code, "_factor"),
+    make_param("mum_", Bio.groups$Code, "_factor"),
     # BHalpha
-    make_param("BHalpha_", Bio.ini_repro$Code[Bio.ini_repro$flagrecruit != 12], "_factor"),
+    make_param("BHalpha_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit != 12], "_factor"),
     # KDENR
-    make_param("KDENR_", Bio.ini_repro$Code[Bio.ini_repro$flagrecruit == 12], "_factor"),
+    make_param("KDENR_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit == 12], "_factor"),
     # mfc, not needed when fishing is turned off
-    make_param("mfc_", if (unfished) character(0) else Bio.ini$Code[Bio.ini$IsFished == 1], "_factor"),
+    make_param("mfc_", if (unfished) character(0) else Bio.groups$Code[Bio.groups$IsFished == 1], "_factor"),
     # mQ
     make_param("", mq.groups, "_mQ_factor")
   )

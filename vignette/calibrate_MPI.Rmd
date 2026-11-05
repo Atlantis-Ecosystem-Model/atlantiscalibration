@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
   comment   = "#>",
   eval      = FALSE   # model runs require an Atlantis binary; chunks shown but not executed
 )
-library("magrittr")
+devtools::load_all()  
 ```
 
 ## Overview
@@ -32,8 +32,32 @@ The workflow follows four steps:
 4. Run the AHR-ES optimiser and inspect results.
 
 
-Create the calibration parameters
+1. Create the calibration parameters
 ```{r}
+
+#The package expects the following file structure
+
+#--inputs: Files generated for the calibration will be stored here
+#---forcing: place all forcing files here
+#----catchts: catch forcing files
+#----
+#---model_configuration: Model parameter files should be saved here, include all the files necessary to run the model. Also place here the biomass and catch time series target for calibration.
+
+
+#Model files needed
+
+fg.file <- "SETasGroupsDem.csv" #functional group file, in inputs/model_configuration
+#Need to add one column called IsCalibrated to indicate if the group will be calibrated (1) or not (0)
+
+biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm" #biology parameter file
+biom.indx <- "outputSETASBiomIndx.txt" #Atlantis biomass index output, used to create biomass targets
+init.file <- "INIT_VMPA_Jan2015.nc" #initial conditions file, used to create weight-at-age and abundance targets
+
+#uses a catch time series as target
+catch.file <- "catch_timeseries.csv" #observed catch by group and year, used only if var.type includes "catch"
+biom.timeseries <- "biomass_timeseries.csv"
+
+
 # reads calibration information
 
 # calibration_settings.csv
@@ -41,58 +65,57 @@ Create the calibration parameters
 
 #this function creates the calibration settings for all groups in the functional group file
 
-fg.file <- "SETasGroupsDem.csv" #functional group file
-var.type <- c("biomass", "weight") #parameters to calibrate
+var.type <- c("biomass", "weight", "abundance","catch") #target types to calibrate: "biomass", "weight", "abundance" and/or "catch"
+mq.groups <- c("ZS", "ZM", "ZL") # Codes of the groups for which an mQ factor is calibrated.  
 fun.type <- "lnorm2" #optimization functions see package documentation for additional formulations
 no.cal.vector <- NULL # add here any groups that should not be calibrated
-#no.cal.vector <- c("FPL","FPO")
+#no.cal.vector <- c("FPL","FPO") #example: group codes excluded from calibration
 dt.timeseries <- 5 #length of calibration in years
 
 w.vector <- NULL #use if different weights for functional groups are needed
-#w.vector <- tibble::tibble(Code=c("FPL", "FPO"), weight_new = c(0.5, 0.5))
-
-#make "calibration_settings.csv"
-make_calsettings(fg.file, var.type, fun.type, no.cal.vector, w.vector)
-
-calibration.settings <- "calibration_settings.csv"
+#w.vector <- tibble::tibble(Code=c("FPL", "FPO"), weight_new = c(0.5, 0.5)) #example: new weight for each group code
 
 #create reproduction option file
 
-biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"
-biom.indx <- "outputSETASBiomIndx.txt"
 
-create_target_files_biomass(biom.indx, 
-                            fg.file,
-                            repro.file ="reproduction-option.csv",
-                            output.path = here::here("inputs"),
-                            not.calibrated = c("PS", "PL", "DC", "DL", "DR"),
-                            dt.timeseries,
-                            mq.groups = c("ZS", "ZM", "ZL"),
-                            unfished = FALSE,
-                            factor.unfished = 1.3)
-# It is possible to create targets for an unfished scenario instead: only fished groups (\code{IsFished == 1}) are included, and their
-#initial biomass is multiplied by
+#make "calibration_settings.csv"
+make_calsettings(fg.file, 
+                 var.type, 
+                 fun.type, 
+                 dt.timeseries,
+                 w.vector, 
+                 biology.prm,
+                 biom.indx,
+                 init.file,
+                 catch.file,
+                 mq.groups)
 
-init.file <- "INIT_VMPA_Jan2015.nc"
-
-create_target_files_abund(init.file,
-                          output.path = here::here("inputs"),
-                          dt.timeseries)
-
-create_target_files_waa(init.file,
-                        output.path = here::here("inputs"),
-                        dt.timeseries)
-
-#uses a catch time series as target
-catch.file <- "catch_timeseries.csv"
-  
-create_target_files_catch(catch.file,
-                          output.path = here::here("inputs"),
-                          dt.timeseries,
-                          weight = 2,
-                          plot = FALSE, 
-                          fg.file)
 ```
+
+
+2. Read calibration information
+
+Uses `calibrar` package functions. 
+`calibration_setup()` parses `calibration_settings.csv`, which maps each
+calibration target to its data file, functional group, and weighting scheme.
+`calibration_data()` then loads the corresponding observed time-series.
+
+```{r}
+#The current likelihood function is minmaxt. The user can modify it if needed
+
+calibration.settings <- "calibration_settings.csv"
+calibration.parameters <- "calibration-parameters-complete.csv"
+read_calibration(calibration.settings, calibration.parameters)
+
+
+control<- readRDS(here::here("inputs","control.rds"))
+forcing <- readr::read_csv(file=here::here("inputs","forcing.csv"))
+
+
+run_calibration(control, forcing)
+
+```
+
 
 
 
@@ -105,9 +128,9 @@ finish, and returns the model outputs in the format expected by `calibrar`.
 #name of the file that will be saved with calibration parameters
 param.file <- "calibration-parameters.csv"
 #prefix where output files are stored and naming prefix
-prefix  <-  "outputFolder/outputSETAS"
+prefix  <-  "outputs/outputSETAS"
 
-#model files should be stored in /data/model_configuration
+#model files should be stored in inputs/data/model_configuration
 sh.file  <-  "RunAtlantis.sh" #run file
 bio.prm  <-  "VMPA_setas_biol_fishing_Trunk.prm" #biology parameter file
 fg.file <- "SETasGroupsDem.csv" #functional group file
@@ -130,18 +153,6 @@ run_model(bio.prm,
 
 ## 2  Calibration setup and observed data
 
-Uses `calibrar` package functions. 
-`calibration_setup()` parses `calibration_settings.csv`, which maps each
-calibration target to its data file, functional group, and weighting scheme.
-`calibration_data()` then loads the corresponding observed time-series.
-
-```{r read-setup}
-#calibration_settings.csv`  
-#Configuration file defining targets location and setup. 
-
-  setup    <- calibrar::calibration_setup(file = "calibration_settings.csv")
-observed <- calibrar::calibration_data(setup = setup, path = ".", sep = ",")
-```
 
 ---
 
@@ -154,17 +165,27 @@ unchanged.
 
 ```{r read-parameters}
 forcing <- read_csv(
-  file      = "calibration-parameters-complete.csv",
+  file      = "
+```
+
+
+```{r read-parameters}
+calibration-parameters-complete.csv
+```
+
+
+```{r read-parameters}
+",
   col_types = cols(.default = col_double(), X1 = col_character())
-) %>%
+) |>
   column_to_rownames(var = "X1")
 ```
 
 A quick look at the parameter space:
 
 ```{r inspect-parameters}
-forcing %>%
-  select(paropt, parmin, parmax, parphase) %>%
+forcing |>
+  select(paropt, parmin, parmax, parphase) |>
   summary()
 ```
 
@@ -222,10 +243,10 @@ results <- readRDS("restart_file.results")
 Extract the best parameter set and compare initial versus optimised values:
 
 ```{r compare-parameters}
-param_comparison <- forcing %>%
-  rownames_to_column("parameter") %>%
-  as_tibble() %>%
-  mutate(paropt_new = results$par) %>%
+param_comparison <- forcing |>
+  rownames_to_column("parameter") |>
+  as_tibble() |>
+  mutate(paropt_new = results$par) |>
   select(parameter, paropt, paropt_new, parmin, parmax, parphase)
 
 param_comparison
@@ -234,10 +255,10 @@ param_comparison
 Plot per-target fitness contributions across iterations:
 
 ```{r plot-convergence}
-results$fitness %>%
-  as_tibble() %>%
-  mutate(iteration = row_number()) %>%
-  pivot_longer(-iteration, names_to = "target", values_to = "fitness") %>%
+results$fitness |>
+  as_tibble() |>
+  mutate(iteration = row_number()) |>
+  pivot_longer(-iteration, names_to = "target", values_to = "fitness") |>
   ggplot(aes(x = iteration, y = fitness, colour = target)) +
   geom_line() +
   scale_y_log10() +

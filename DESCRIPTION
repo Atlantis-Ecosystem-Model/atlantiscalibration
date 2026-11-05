@@ -1,22 +1,24 @@
 Package: atlantiscalibration
 Title: Package to calibrate the Atlantis ecosystem model using the **calibrar** R package.  
 Version: 0.0.0.9000
-Authors@R: 
-    person("Alaia", "Morell", role = c("aut"), 
-    "Hem Nalini","Morzaria-Luna, role = c(aut"))
+Authors@R: c(
+    person("Alaia", "Morell", role = c("aut")),
+    person("Hem Nalini", "Morzaria-Luna", role = c("aut")))
 Description: Perform the calibration of models built on the Atlantis ecosystem modeling framework using the optimization package Calibration
 License: CC BY-NC https://creativecommons.org/licenses/by-nc/4.0/
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
 Imports: 
     calibrar,
     doSNOW,
     dplyr,
+    ggplot2,
     here,
     stringr,
-    magrittr,
     parallel,
     readr,
     tidyr,
     ncdf4
+Config/roxygen2/version: 8.1.1

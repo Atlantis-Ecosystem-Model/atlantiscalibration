@@ -20,6 +20,9 @@
 #'   contain the columns \code{Name}, \code{Code}, \code{year} and
 #'   \code{catch_tons}.  Multiple rows per group and year (e.g. by fleet or
 #'   area) are summed.
+#' @param fg.file Character.  Name of the functional groups CSV file in
+#'   \code{inputs/model_configuration}.  Must contain the columns \code{Code}
+#'   and \code{Name}.
 #' @param output.path Character.  Directory where output files are written.
 #'   Target files are written to its \code{data} sub-directory, which is
 #'   created if needed.  Default: \code{inputs}.
@@ -38,51 +41,62 @@
 #' \dontrun{
 #'   create_target_files_catch(
 #'     catch.file = here::here("inputs", "PS_catch_2011-2019.csv"),
+#'     fg.file    = "PugetSoundAtlantisFunctionalGroups_2024.csv",
 #'     plot       = TRUE
 #'   )
 #' }
-create_target_files_catch <- function(catch.file,
+create_target_files_catch <- function(catch.file, fg.file,
                                       output.path = here::here("inputs"),
                                       dt.timeseries = 5,
                                       weight = 2,
                                       plot = FALSE){
 
-
-  data.path <- file.path(output.path, "data")
-  dir.create(data.path, showWarnings = FALSE, recursive = TRUE)
-
-    # Total annual catch per group
-
-  row_data <- readr::read_csv(here::here("inputs","model_configuration",catch.file))
+  row.data <- readr::read_csv(here::here("inputs","model_configuration",catch.file))
   fg.groups <- readr::read_csv(here::here("inputs","model_configuration",fg.file))
-
 
   data.path <- file.path(output.path, "data")
   dir.create(data.path, showWarnings = FALSE, recursive = TRUE)
 
   # Total annual catch per group
-  total_catch_sp <- row_data |>
+  total.catch.sp <- row.data |>
+    dplyr::left_join(fg.groups, by ="Code")
 
-
-
-  species <- unique(total_catch_sp$Name)
+  species <- unique(total.catch.sp$Name)
 
   if (plot){
-    old.par <- graphics::par(mfrow = c(4, 5), mar = c(2, 2, 2, 2))
-    on.exit(graphics::par(old.par))
-    for (i in species){
-      a <- total_catch_sp[total_catch_sp$Name == i, ]
-      plot(a$year, a$catch_tons, ylim = c(0, max(a$catch_tons)),
-           main = unique(a$Code))
-      graphics::abline(h = stats::median(a$catch_tons), lty = 2)
-    }
+
+   median.catch <- total.catch.sp |>
+      dplyr::group_by(Code) |>
+      dplyr::filter(max(Catch) > 0) |>
+      dplyr::summarise(Catch = stats::median(Catch), .groups = "drop")
+
+    # Only plot groups with catch
+    plot.data <- total.catch.sp |>
+      dplyr::filter(Code %in% median.catch$Code)
+
+    catch.plot <- ggplot2::ggplot(plot.data,
+                                  ggplot2::aes(x = Year, y = Catch)) +
+      ggplot2::geom_point() +
+      ggplot2::geom_hline(data = median.catch,
+                          ggplot2::aes(yintercept = Catch),
+                          linetype = "dashed") +
+      ggplot2::facet_wrap(~ Code, scales = "free_y") +
+      ggplot2::expand_limits(y = 0) +
+      ggplot2::labs(x = "Year", y = "Catch",
+                    subtitle = "Only groups with catch in at least one year are shown") +
+      ggplot2::theme_bw()
+
+    plot.path <- here::here("outputs")
+    dir.create(plot.path, showWarnings = FALSE, recursive = TRUE)
+    ggplot2::ggsave(file.path(plot.path, "calibration_catch_timeseries.pdf"), catch.plot,
+                    width = 11, height = 8.5)
   }
 
   ##################
   # Create data files
   ##################
   for (i in species){
-    catch <- stats::median(total_catch_sp$catch_tons[total_catch_sp$Name == i])
+    catch <- stats::median(total.catch.sp$Catch[total.catch.sp$Name == i])
     data <- data.frame(Time = 1:dt.timeseries, Catch = rep(catch, dt.timeseries))
     utils::write.csv(data, file.path(data.path, paste0(i, "_catch.csv")), row.names = FALSE)
   }

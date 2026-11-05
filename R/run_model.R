@@ -2,7 +2,7 @@
 #' @title Run one step of the Atlantis calibration model
 #' @description
 #' Core objective function designed for use with the \pkg{calibrar} package.
-#' Receives a log-scale parameter vector, back-transforms it via \code{exp()},
+#' Receives a log-scale parameter vecto r, back-transforms it via \code{exp()},
 #' writes a parameter snapshot CSV, edits the relevant entries in the Atlantis
 #' biology parameter file (\code{bio.prm}), executes the simulation via a shell
 #' script, reads the outputs, and returns a named list of modeled indicators
@@ -49,7 +49,6 @@ run_model   <-  function(bio.prm,
                      param.file="calibration-parameters.csv",
                      sh.file,
                      prefix,
-                     bio.prm,
                      fg.file,
                      biom.indx
 ) {
