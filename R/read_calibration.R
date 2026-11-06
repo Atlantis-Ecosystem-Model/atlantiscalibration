@@ -23,6 +23,11 @@
 #'   an interrupted calibration and to save the results.
 #' @param maxgen Integer.  Maximum number of generations (iterations) of the
 #'   optimiser.  Default: \code{5}.
+#' @param track.path Character.  Folder where the parameter files used in
+#'   each run of each iteration are saved, as
+#'   \code{iteration_<iteration>/run_<run>_<file>} (see
+#'   \code{\link{keep_track_prm}}).  Set to \code{NULL} to not save them.
+#'   Default: \code{outputs/keep_track_calibration}.
 #' @param ... Arguments passed to \code{\link{run_model}} through
 #'   \code{\link{make_objfn}} (\code{prefix}, \code{fg.file},
 #'   \code{biom.indx}, \code{run.prm} and \code{dt.timeseries}).
@@ -47,7 +52,8 @@
 #'     run.prm = "VMPA_setas_run_fishing_F_Trunk.prm", dt.timeseries = 5)
 #' }
 read_calibration <- function(calibration.settings, calibration.parameters, n.Cores,
-                             master, run, restart.file, maxgen = 5, ...){
+                             master, run, restart.file, maxgen = 5,
+                             track.path = here::here("outputs", "keep_track_calibration"), ...){
 
    setup  <- calibrar::calibration_setup(file=here::here("inputs",calibration.settings))
 
@@ -67,7 +73,13 @@ read_calibration <- function(calibration.settings, calibration.parameters, n.Cor
   utils::write.csv(forcing, file=here::here("inputs","forcing.csv"))
 
   # create an objective function, with the arguments of the run model function
-  objfn <- make_objfn(setup, observed, forcing, ...)
+  # absolute path, so the model runs in the run directories can find it
+  if (!is.null(track.path)){
+    track.path <- normalizePath(track.path, mustWork = FALSE)
+    dir.create(track.path, showWarnings = FALSE, recursive = TRUE)
+  }
+
+  objfn <- make_objfn(setup, observed, forcing, track.path = track.path, ...)
 
   control = list()
   control$maxit = maxgen   # maximum number of iterations (former gen.max parameter)

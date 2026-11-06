@@ -59,6 +59,7 @@ inputs/                       # files created for the calibration
   model_configuration/        # all the files needed to run the model
     outputFolder/             # outputs of a previous run of the model
 outputs/                      # plots
+  keep_track_calibration/     # parameter files used in each run of each iteration
 ```
 
 `inputs/model_configuration` contains the Atlantis model files: functional
@@ -205,6 +206,29 @@ parameter proposal:
    weight at age, catch summed over fleets, and abundance at age.  If the run
    crashed, all outputs are zero.
 
+The parameter files used in every model run are saved in
+`outputs/keep_track_calibration` (argument `track.path`), with one folder per
+iteration (generation) and the run number in the file name:
+
+```
+outputs/keep_track_calibration/
+  iteration_001/
+    run_001_calibration-parameters.csv        # factors of run 1
+    run_001_VMPA_setas_biol_fishing_Trunk.prm # biology parameters of run 1
+    run_001_VMPA_setas_harvest_F_Trunk.prm    # harvest parameters, if mfc is calibrated
+    run_002_...
+  iteration_002/
+  ...
+  final_001/                                  # best solution at the end of phase 1
+    run_000_...
+```
+
+The run number is the calibrar run directory (`<run>/i1`, `<run>/i2`, ...).
+The best solution is evaluated again in `<run>/i0` at the end of each phase,
+and saved in `final_<phase>`.  The iteration is counted
+in each run directory, so it continues correctly when a calibration is
+restarted.
+
 calibrar copies the `master` directory to a new directory under `run` for
 each model run, so `master` must contain all the files needed to run the
 model, and the arguments of `run_model()` are file names relative to it.
@@ -218,6 +242,7 @@ calibration <- read_calibration(
   master       = "/home/atlantis/Atlantis_Calibration/configuration/",
   run          = "/home/atlantis/Atlantis_Calibration/RUN",
   restart.file = "/home/atlantis/Atlantis_Calibration/restart_file",
+  track.path   = here::here("outputs", "keep_track_calibration"), # parameter files of each run
   # arguments of run_model(), relative to the master directory
   prefix        = "outputFolder/outputSETAS",            # -o outputSETAS.nc, -d outputFolder
   fg.file       = fg.file,

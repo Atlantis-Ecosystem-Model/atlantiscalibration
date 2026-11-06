@@ -66,6 +66,10 @@
 #' @param param.file Character.  Name of the CSV file written with the
 #'   back-transformed parameter values at each run.  Default:
 #'   \code{"calibration-parameters.csv"}.
+#' @param track.path Character.  Absolute path of the folder where the
+#'   parameter files used in each run are saved (see
+#'   \code{\link{keep_track_prm}}).  If \code{NULL} (default), they are not
+#'   saved.
 #' @param ... Other arguments passed by \pkg{calibrar} (e.g. \code{forcing}),
 #'   not used.
 #'
@@ -81,6 +85,7 @@ run_model <- function(param,
                       run.prm,
                       dt.timeseries,
                       param.file = "calibration-parameters.csv",
+                      track.path = NULL,
                       ...) {
 
   # set parameter names
@@ -151,6 +156,12 @@ run_model <- function(param,
   writeLines(bio.lines, bio.prm)
   if (edit.harvest){
     writeLines(harvest.lines, harvest.prm)
+  }
+
+  # Keep track of the parameter files used in each run of each iteration
+  if (!is.null(track.path)){
+    keep_track_prm(path, track.path,
+                   files = c(param.file, bio.prm, if (edit.harvest) harvest.prm))
   }
 
 ##########################################################################################
