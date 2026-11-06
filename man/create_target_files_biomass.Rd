@@ -7,17 +7,17 @@
 create_target_files_biomass(
   biom.indx = NULL,
   fg.file,
-  repro.file = "reproduction-option.csv",
   output.path = here::here("inputs"),
   not.calibrated,
   dt.timeseries = 5,
-  mq.groups = c("ZS", "ZM", "ZL"),
   unfished = FALSE,
   factor.unfished = 1.3,
   initial.conditions = TRUE,
   time.series = FALSE,
   biomass.file = "biomass_timeseries.csv",
-  biology.prm
+  biology.prm,
+  parameter.file = "parameter_table.csv",
+  repro.file = "reproduction-option.csv"
 )
 }
 \arguments{
@@ -26,11 +26,8 @@ create_target_files_biomass(
 \code{initial.conditions = TRUE}.  Default: \code{NULL}.}
 
 \item{fg.file}{Character.  Path to the functional groups CSV file.  Must
-contain the columns \code{Code}, \code{Name} and \code{IsFished}.}
-
-\item{repro.file}{Character.  Path to the reproduction option CSV file with
-columns \code{Code} and \code{flagrecruit}, as written by
-\code{repro_option}.  Default: \code{inputs/reproduction-option.csv}.}
+contain the columns \code{Code}, \code{Name}, \code{IsFished} and
+\code{GroupType}.}
 
 \item{output.path}{Character.  Directory where output files are written.
 Target time series are written to its \code{data} sub-directory, which
@@ -42,9 +39,6 @@ exclude from calibration.  Default:
 
 \item{dt.timeseries}{Integer.  Number of time steps in each target time
 series.  Default: \code{5}.}
-
-\item{mq.groups}{Character vector.  Codes of the groups for which an
-\code{mQ} factor is calibrated.  Default: \code{c("ZS", "ZM", "ZL")}.}
 
 \item{unfished}{Logical.  If \code{TRUE}, create targets for an unfished
 scenario (see Details).  Default: \code{FALSE}.}
@@ -68,6 +62,18 @@ and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
 
 \item{biology.prm}{Character.  Name of the Atlantis biology parameter file
 in \code{inputs/model_configuration}.}
+
+\item{parameter.file}{Character.  Name of the parameter table CSV file in
+\code{inputs}, with one row per functional group and one column per
+parameter to calibrate (any of \code{mum}, \code{BHalpha},
+\code{BHbeta}, \code{KDENR}, \code{mfc}, \code{mQ}, \code{mL},
+\code{C} and \code{E}), set to \code{1} if the parameter is calibrated
+for that group.  Default: \code{"parameter_table.csv"}.}
+
+\item{repro.file}{Character.  Name of the reproduction option CSV file in
+\code{inputs}, with columns \code{Code} and \code{flagrecruit}, as
+written by \code{\link{repro_option}}.  Default:
+\code{"reproduction-option.csv"}.}
 }
 \value{
 Invisibly, a named list with elements \code{settings} (calibration
@@ -91,17 +97,26 @@ calibrated group, with columns \code{Time} and \code{Biomass}.
 \item \code{calibration_settings.csv}: calibration settings for each
 biomass target.
 \item \code{calibration-parameters-complete.csv}: parameter factors to
-estimate (\code{mum}, \code{BHalpha}, \code{KDENR}, \code{mfc} and
-\code{mQ}), with initial values, bounds and phase.
+estimate for each group, as set in \code{parameter.file}, with
+initial values, bounds and phase.
 \item \code{biomass.txt} and \code{biomass_crash.txt}: R code snippets
 used to build the output list of the run model function, for a
 successful run and for a crashed run (all zeros), respectively.
 }
 }
 \details{
-\code{BHalpha} factors are created for groups whose \code{flagrecruit} is
-not 12, \code{KDENR} factors for groups whose \code{flagrecruit} is 12, and
-\code{mfc} factors for groups with \code{IsFished == 1}.
+The parameters to calibrate, and the groups each one applies to, are read
+from \code{parameter.file} (see \code{\link{read_parameter_table}}).
+Factors are only created for groups that are turned on and calibrated.
+\code{BHalpha}, \code{BHbeta} and \code{KDENR} factors are only created
+for groups with \code{GroupType} \code{FISH}, \code{SHARK}, \code{BIRD}
+or \code{MAMMAL}, taken from \code{parameter.file} if it has a
+\code{GroupType} column, or else from \code{fg.file}.  \code{mfc} factors
+are only created for groups with \code{IsFished == 1} in \code{fg.file}.
+\code{KDENR} factors are only created for groups whose \code{flagrecruit}
+in \code{repro.file} is 12, and \code{BHalpha} and \code{BHbeta} factors
+only for groups whose \code{flagrecruit} is not 12.  Groups missing from
+\code{repro.file} get none of the three.
 
 If \code{unfished = TRUE}, targets are created for an unfished scenario
 instead: only fished groups (\code{IsFished == 1}) are included, and their

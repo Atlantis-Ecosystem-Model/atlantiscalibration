@@ -83,7 +83,8 @@ create_target_files_abund <- function(init.file,
     weight = 1,
     use_data = TRUE,
     file = paste0("data/", variable, ".csv"),
-    varid = NA
+    varid = NA,
+    col_skip = 1  # skip the Time column, keep all age classes
   )
 
   utils::write.csv(settings, file.path(output.path, "calibration_settings_abund.csv"),

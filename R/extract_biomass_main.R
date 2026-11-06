@@ -34,14 +34,22 @@ extract_biomass_main <- function(path, prefix = NULL, fg.file, txt = F, dt.times
     fg <- process_fg(fg.file)
 
 
-    vn <- c(paste0(fg$Name,"_N")) # variable name is functional group + "_N"
     ts <- ncdf4::ncvar_get(outputs.nc,varid = "t") |> as.numeric()
     tyrs <- ts/(60*60*24*365) # from s to yrs
+    all.var <- names(outputs.nc$var)
 
-    Ndat <- purrr::map(1:length(vn), function(x) ncdf4::ncvar_get(outputs.nc,vn[x]))
-    names(Ndat)<- vn
-
-    biomass <- lapply(X = Ndat, FUN = calculate_biomass, fg.file = fg, name = names(Ndat), outputs.nc = outputs.nc)
+    # variable name is functional group + "_N"; stage-structured groups
+    # (e.g. cephalopods) have one variable per stage, <Name>_N1, <Name>_N2, ...
+    biomass <- lapply(fg$Name, function(name){
+      vn <- paste0(name, "_N")
+      if (!vn %in% all.var) vn <- grep(paste0("^", name, "_N[0-9]+$"), all.var, value = TRUE)
+      if (length(vn) == 0){
+        warning("No nitrogen variable found for ", name, "; biomass set to 0")
+        return(rep(0, length(ts)))
+      }
+      Reduce(`+`, lapply(vn, function(x) calculate_biomass(ncdf4::ncvar_get(outputs.nc, x),
+                                                            fg.file = fg, name = x, outputs.nc = outputs.nc)))
+    })
 
     names(biomass) <- fg$Name
   }

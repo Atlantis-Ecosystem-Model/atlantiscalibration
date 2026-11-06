@@ -39,12 +39,18 @@ compare_outputs <- function(results_file = "restart_file.results", forcing) {
   param_comparison <- forcing |>
     tibble::rownames_to_column("parameter") |>
     tibble::as_tibble() |>
-    dplyr::mutate(paropt_new = results$par) |>
-    dplyr::select(parameter, paropt, paropt_new, parmin, parmax, parphase)
+    dplyr::mutate(paropt_new = results$par,
+                  # factor applied to the original value in the .prm file
+                  factor_new = exp(paropt_new)) |>
+    dplyr::select(parameter, paropt, paropt_new, factor_new, parmin, parmax, parphase)
 
-  # Convergence plot: per-target fitness across calibration iterations
-  plot_changes <- results$fitness |>
-    tibble::as_tibble() |>
+  # Convergence plot: per-target fitness of the best solution in each
+  # generation (rows of trace$fitness after the last generation are NA)
+  fitness <- results$trace$fitness
+  fitness <- fitness[stats::complete.cases(fitness), , drop = FALSE]
+
+  plot_changes <- fitness |>
+    tibble::as_tibble(.name_repair = "unique") |>
     dplyr::mutate(iteration = dplyr::row_number()) |>
     tidyr::pivot_longer(-iteration, names_to = "target", values_to = "fitness") |>
     ggplot2::ggplot(ggplot2::aes(x = iteration, y = fitness, colour = target)) +

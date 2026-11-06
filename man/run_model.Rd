@@ -12,7 +12,8 @@ run_model(
   sh.file,
   prefix,
   fg.file,
-  biom.indx
+  biom.indx,
+  harvest.prm = NULL
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ at minimum the columns \code{Code}, \code{Name}, \code{NumCohorts}, and
 \item{biom.indx}{Character.  Relative path to the biomass index text file
 used to detect whether the simulation completed.  Default:
 \code{"outputFolder/AMPS_OUTBiomIndx.txt"}.}
+
+\item{harvest.prm}{Character.  Path to the Atlantis harvest parameter
+\code{.prm} file.  Required when \code{names} includes \code{mfc}
+factors.  Default: \code{NULL}.}
 }
 \value{
 A named list of modeled output indicators.  Biomass elements are
@@ -62,9 +67,20 @@ biology parameter file (\code{bio.prm}), executes the simulation via a shell
 script, reads the outputs, and returns a named list of modeled indicators
 for comparison against observations.
 
-Parameter names in \code{names} must follow the convention
-\code{<type>_<species>_factor} for biology parameters (e.g.
-\code{"mum_CHY_factor"}, \code{"BHalpha_CHY_factor"},
-\code{"KDENR_CHY_factor"}) or \code{"<species>_mQ_factor"} for
-catchability.
+The parameters edited are those in \code{names}, as created from the
+parameter table by \code{\link{create_target_files_biomass}}.  Each factor
+multiplies the original value(s) in the \code{.prm} file (see
+\code{\link{edit_param_factor}}).  Parameter names in \code{names} must
+follow these conventions (other names stop with an error):
+\itemize{
+\item \code{mum}, \code{BHalpha}, \code{BHbeta}, \code{KDENR},
+\code{C} and \code{E}: \code{<type>_<Code>_factor} (e.g.
+\code{"mum_FPS_factor"}), edited in \code{bio.prm}.
+\item \code{mQ} and \code{mL}: \code{<Code>_<type>_factor} (e.g.
+\code{"ZS_mQ_factor"}), edited in \code{bio.prm}.
+\item \code{mfc}: \code{mfc_<Code>_factor}, edited as \code{mFC_<Code>}
+in \code{harvest.prm}.
+}
+The edited files are written to \code{bio.prm} and \code{harvest.prm} in
+the working directory, so the original files are not modified.
 }

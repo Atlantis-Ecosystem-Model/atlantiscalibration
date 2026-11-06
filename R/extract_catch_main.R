@@ -56,10 +56,14 @@ extract_catch_main <- function(path, prefix = NULL, fg.file, dt.timeserie, fishe
     names(Ndat)<- vn
     catch<-list()
 
-    species_code <- unique(stringr::str_extract(names(Ndat), "^[^_]*"))
-    for (i in unique(stringr::str_extract(names(Ndat), "^[^_]*"))){
+    species_code <- stringr::str_extract(names(Ndat), "^[^_]*")
+    for (i in unique(species_code)){
       Name <- fg$Name[fg$Code==i]
-      catch[[Name]] <- apply(X=as.array(Ndat[stringr::str_extract(names(Ndat), "^[^_]*")==i])[[1]], FUN = sum, MARGIN = 2)
+      # groups that are turned off are not in fg
+      if (length(Name) == 0) next
+      # sum over boxes for each fleet, then over all fleets catching the group
+      fleets <- lapply(Ndat[species_code==i], function(x) apply(x, MARGIN = 2, FUN = sum))
+      catch[[Name]] <- Reduce(`+`, fleets)
     }
   }
   return(catch)

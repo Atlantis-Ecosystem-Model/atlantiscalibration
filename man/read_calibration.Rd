@@ -4,7 +4,7 @@
 \alias{read_calibration}
 \title{Read calibration inputs and save the optimiser control settings}
 \usage{
-read_calibration(calibration.settings, calibration.parameters)
+read_calibration(calibration.settings, calibration.parameters, n.Cores)
 }
 \arguments{
 \item{calibration.settings}{Character.  Name of the calibration settings

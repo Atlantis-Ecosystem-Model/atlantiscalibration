@@ -29,10 +29,10 @@
 #'   file, used to create weight-at-age and abundance targets.
 #' @param catch.file Character. Name of the observed catch CSV file, used to
 #'   create catch targets.
-#' @param mq.groups Character vector. Codes of the groups for which an
-#'   \code{mQ} factor is calibrated.
-#' @param bio.parameters Character vector. Parameters to calibrate, any of
-#'   "mum", "BHalpha", "KDENR", "mfc" and "mQ" (not case sensitive).
+#' @param parameter.file Character. Name of the parameter table CSV file in
+#'   inputs/, with one row per functional group and one column per parameter
+#'   to calibrate, set to 1 if the parameter is calibrated for that group (see
+#'   \code{\link{create_target_files_biomass}}).  Default: "parameter_table.csv".
 #'
 #' @return Invisibly returns NULL. Writes calibration settings CSV to
 #'   inputs/calibration_settings.csv
@@ -48,12 +48,13 @@
 #'                  biom.indx     = "outputSETASBiomIndx.txt",
 #'                  init.file     = "INIT_VMPA_Jan2015.nc",
 #'                  catch.file    = "catch_timeseries.csv",
-#'                  mq.groups     = c("ZS", "ZM", "ZL"))
+#'                  parameter.file = "parameter_table.csv")
 #' }
 #'
 #' @export
 make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
-                             w.vector, biology.prm, biom.indx, init.file, catch.file, mq.groups, ml.groups, bio.parameters){
+                             w.vector, biology.prm, biom.indx, init.file, catch.file,
+                             parameter.file = "parameter_table.csv"){
 
   # Read functional group configuration file
   fg.groups <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
@@ -93,19 +94,16 @@ make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
 
       create_target_files_biomass(biom.indx = biom.indx,
                                   fg.file = fg.file,
-                                  repro.file = "reproduction-option.csv",
                                   output.path = here::here("inputs"),
                                   not.calibrated=no.cal.vector,
                                   dt.timeseries = dt.timeseries,
-                                  mq.groups = mq.groups,
-                                  ml.groups = ml.groups,
                                   unfished = FALSE,
                                   factor.unfished = 1.3,
                                   initial.conditions = TRUE,
                                   time.series = FALSE,
                                   biomass.file = "biomass_timeseries.csv",
                                   biology.prm = biology.prm,
-                                  bio.parameters = bio.parameters)
+                                  parameter.file = parameter.file)
       # It is possible to create targets for an unfished scenario instead: only fished groups (\code{IsFished == 1}) are included, and their
       #initial biomass is multiplied by
 
@@ -151,7 +149,8 @@ make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
         dplyr::mutate(type = "multinom", calibrate = TRUE,
                       weight = 1, use_data = TRUE,
                       file = paste0("data/", variable,".csv"), #Raptors_Nums
-                      varid = NA)
+                      varid = NA,
+                      col_skip = 1) # skip the Time column, keep all age classes
 
       abund.settings <- create_target_files_abund(init.file,
                                                   output.path = here::here("inputs"),

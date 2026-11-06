@@ -18,12 +18,11 @@
 return_run_tstop <- function(path, run.filename) {
   prm <- paste0(path, "/", run.filename)
   bio.lines <- readLines(prm)
-  pattern = paste0('tstop')
-  bio.lines.id = grep(pattern,bio.lines)
-  bio.lines.vals1 = bio.lines[bio.lines.id]
+  # tstop <value> day, separated by tabs or spaces
+  bio.lines.id = grep("^tstop\\s", bio.lines)
+  bio.lines.vals1 = bio.lines[bio.lines.id[1]]
 
-  a <- strsplit(bio.lines.vals1, "\t")[[1]][2]
-  value <- as.numeric(unlist(strsplit(a, " "))[1])
+  value <- as.numeric(strsplit(trimws(bio.lines.vals1), "\\s+")[[1]][2])
 
   return(value)
 }

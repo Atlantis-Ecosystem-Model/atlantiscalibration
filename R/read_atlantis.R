@@ -62,7 +62,7 @@ read_atlantis <- function(path, prefix = NULL, fg.file, fishery, spatial = F, N_
     }else{
       output.path = paste0(path, "/outFolder")
       output = list(biomass= extract_biomass_main(path = path, prefix = prefix, fg.file = fg.file),
-                    landings=extract_catch_main(path, prefix = prefix, fg.file, fishery),
+                    landings=extract_catch_main(path, prefix = prefix, fg.file = fg.file, dt.timeserie = dt.timeserie, fishery = fishery),
                     abundance= extract_abund_main(path, prefix = prefix, fg.file),
                     waa = extract_waa(path=path, prefix = prefix))
     }

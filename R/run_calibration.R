@@ -5,35 +5,39 @@
 #' \code{\link[calibrar]{calibrate}}.  The cluster is stopped on exit
 #' regardless of whether optimisation succeeds or fails.
 #'
-#' The function relies on several objects being present in the calling
-#' environment: \code{objfn} (the objective function), \code{forcing}
-#' (a list with elements \code{paropt}, \code{parmin}, \code{parmax}, and
-#' \code{parphase}), \code{observed} (calibration targets), \code{setup},
-#' and \code{likelihood_function}.
-#'
-#' @param control A named list of calibration control parameters passed to
-#'   \code{\link[calibrar]{calibrate}}.  Must contain at minimum
-#'   \code{nCores} (integer, number of parallel workers).
+#' @param calibration Named list returned by \code{\link{read_calibration}},
+#'   with elements \code{setup}, \code{observed}, \code{forcing} (data frame
+#'   with columns \code{paropt}, \code{parmin}, \code{parmax} and
+#'   \code{parphase}), \code{objfn} (the objective function) and
+#'   \code{control} (control parameters passed to
+#'   \code{\link[calibrar]{calibrate}}, with at minimum \code{nCores}).
 #'
 #' @return The object returned by \code{\link[calibrar]{calibrate}}: a list
 #'   with the optimised parameter vector, objective function value, and
-#'   convergence diagnostics.
+#'   convergence diagnostics.  The results are also saved by \pkg{calibrar}
+#'   in \code{<control$restart.file>.results}.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'   ctrl <- list(nCores = 4, maxIter = 500)
-#'   result <- run_calibration(control = ctrl)
+#'   calibration <- read_calibration(...)
+#'   result <- run_calibration(calibration)
 #' }
-run_calibration <- function(control){
+run_calibration <- function(calibration){
+
+  control  <- calibration$control
+  objfn    <- calibration$objfn
+  forcing  <- calibration$forcing
+  observed <- calibration$observed
+  setup    <- calibration$setup
 
   cl <- parallel::makeCluster(control$nCores)
   doSNOW::registerDoSNOW(cl)
   on.exit(parallel::stopCluster(cl), add = TRUE)
 
   # Objects required on each worker
-  parallel::clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed",
-                                          "setup",   "likelihood_function"))
+  parallel::clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed", "setup"),
+                          envir = environment())
 
   # Libraries required on each worker
   for (pkg in c("atlantiscalibration", "calibrar", "stringr")){

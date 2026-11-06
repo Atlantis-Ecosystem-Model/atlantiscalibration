@@ -19,26 +19,36 @@
 #' @param forcing Data frame of parameter metadata with at minimum columns
 #'   \code{paropt}, \code{parmin}, \code{parmax}, and \code{parphase}.  Row
 #'   names are used as parameter names.
+#' @param ... Arguments passed to \code{\link{run_model}} at every run:
+#'   \code{prefix}, \code{fg.file}, \code{biom.indx}, \code{run.prm} and
+#'   \code{dt.timeseries}.  The shell script and the biology and harvest
+#'   parameter files are found by \code{\link{run_model}} itself.
 #'
 #' @return The objective function.  It takes \code{par}, a numeric vector of
-#'   parameters in the transformed (log) scale, plus additional arguments
-#'   forwarded to \code{\link{run_model}}, and returns a named numeric vector
-#'   of per-target log-likelihood contributions.
+#'   parameters in the transformed (log) scale, and returns a named numeric
+#'   vector of per-target log-likelihood contributions.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'   objfn <- make_objfn(setup, observed, forcing)
+#'   objfn <- make_objfn(setup, observed, forcing,
+#'                       prefix = "outputFolder/outputSETAS",
+#'                       fg.file = "SETasGroupsDem.csv",
+#'                       biom.indx = "outputFolder/outputSETASBiomIndx.txt",
+#'                       run.prm = "VMPA_setas_run_fishing_F_Trunk.prm",
+#'                       dt.timeseries = 5)
 #'   # Evaluate the objective function at the initial parameter values
 #'   objfn(par = forcing[["paropt"]])
 #' }
-make_objfn <- function(setup, observed, forcing){
+make_objfn <- function(setup, observed, forcing, ...){
   calibrar::calibration_objFn(
-    model    = run_model,
-    setup    = setup,
-    observed = observed,
+    model     = run_model,
+    setup     = setup,
+    observed  = observed,
     aggregate = FALSE,
-    forcing  = forcing,
-    names    = row.names(forcing)
+    forcing   = forcing,
+    names     = row.names(forcing),
+    variables = setup$variable,
+    ...
   )
 }

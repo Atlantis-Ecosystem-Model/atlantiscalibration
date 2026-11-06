@@ -4,7 +4,8 @@
 
 #' Open the main Atlantis NetCDF output file
 #'
-#' Opens the \code{<prefix>_OUT.nc} file found in \code{path} using
+#' Opens the \code{<prefix>_OUT.nc} file found in \code{path}, or
+#' \code{<prefix>.nc} if it does not exist, using
 #' \code{ncdf4::nc_open()}.
 #'
 #' @param path Character.  Path to the directory containing Atlantis outputs.
@@ -21,10 +22,9 @@
 #' }
 open_main_nc <- function(path, prefix = NULL) {
   if(is.null(prefix)) stop("Add prefix argument for your Atlantis configuration")
-  if(stringr::str_sub(path,-1)=="/"){
-    outputs.nc <- ncdf4::nc_open(paste(path, "/", prefix, "_OUT.nc", sep = ""))
-  }else{
-    outputs.nc <- ncdf4::nc_open(paste(path, "/", prefix, "_OUT.nc", sep = ""))
-  }
+  # <prefix>_OUT.nc (e.g. -o AMPS_OUT.nc) or <prefix>.nc (e.g. -o outputSETAS.nc)
+  nc.file <- file.path(path, paste0(prefix, "_OUT.nc"))
+  if(!file.exists(nc.file)) nc.file <- file.path(path, paste0(prefix, ".nc"))
+  outputs.nc <- ncdf4::nc_open(nc.file)
   return(outputs.nc)
 }

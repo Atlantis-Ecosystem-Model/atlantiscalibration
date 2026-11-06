@@ -14,7 +14,7 @@ make_calsettings(
   biom.indx,
   init.file,
   catch.file,
-  mq.groups
+  parameter.file = "parameter_table.csv"
 )
 }
 \arguments{
@@ -44,8 +44,10 @@ file, used to create weight-at-age and abundance targets.}
 \item{catch.file}{Character. Name of the observed catch CSV file, used to
 create catch targets.}
 
-\item{mq.groups}{Character vector. Codes of the groups for which an
-\code{mQ} factor is calibrated.}
+\item{parameter.file}{Character. Name of the parameter table CSV file in
+inputs/, with one row per functional group and one column per parameter
+to calibrate, set to 1 if the parameter is calibrated for that group (see
+\code{\link{create_target_files_biomass}}).  Default: "parameter_table.csv".}
 }
 \value{
 Invisibly returns NULL. Writes calibration settings CSV to
@@ -75,7 +77,7 @@ make_calsettings(fg.file       = "SETasGroupsDem.csv",
                  biom.indx     = "outputSETASBiomIndx.txt",
                  init.file     = "INIT_VMPA_Jan2015.nc",
                  catch.file    = "catch_timeseries.csv",
-                 mq.groups     = c("ZS", "ZM", "ZL"))
+                 parameter.file = "parameter_table.csv")
 }
 
 }
