@@ -12,13 +12,18 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     calibrar,
+    data.table,
     doSNOW,
     dplyr,
     ggplot2,
     here,
-    stringr,
+    ncdf4,
     parallel,
+    purrr,
     readr,
+    stats,
+    stringr,
+    tibble,
     tidyr,
-    ncdf4
+    utils
 Config/roxygen2/version: 8.1.1

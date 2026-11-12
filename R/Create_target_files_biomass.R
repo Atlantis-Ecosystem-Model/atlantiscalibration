@@ -15,16 +15,26 @@
 #'   \item \code{calibration_settings.csv}: calibration settings for each
 #'     biomass target.
 #'   \item \code{calibration-parameters-complete.csv}: parameter factors to
-#'     estimate (\code{mum}, \code{BHalpha}, \code{KDENR}, \code{mfc} and
-#'     \code{mQ}), with initial values, bounds and phase.
+#'     estimate for each group, as set in \code{parameter.file}, with
+#'     initial values, bounds and phase.
 #'   \item \code{biomass.txt} and \code{biomass_crash.txt}: R code snippets
 #'     used to build the output list of the run model function, for a
 #'     successful run and for a crashed run (all zeros), respectively.
 #' }
 #'
-#' \code{BHalpha} factors are created for groups whose \code{flagrecruit} is
-#' not 12, \code{KDENR} factors for groups whose \code{flagrecruit} is 12, and
-#' \code{mfc} factors for groups with \code{IsFished == 1}.
+#' The parameters to calibrate, and the groups each one applies to, are read
+#' from \code{parameter.file} (see \code{\link{read_parameter_table}}).
+#' Factors are only created for groups that are turned on and calibrated.
+#' \code{BHalpha}, \code{BHbeta} and \code{KDENR} factors are only created
+#' for groups with \code{GroupType} \code{FISH}, \code{SHARK}, \code{BIRD}
+#' or \code{MAMMAL}, taken from \code{parameter.file} if it has a
+#' \code{GroupType} column, or else from \code{fg.file}.  \code{mfc} factors
+#' are only created for groups with \code{IsFished == 1} in \code{fg.file}.
+#' \code{KDENR} factors are only created for groups whose \code{flagrecruit}
+#' in \code{repro.file} is 12, and \code{BHalpha} and \code{BHbeta} factors
+#' only for groups whose \code{flagrecruit} is 3 (Beverton-Holt).  Groups
+#' with other recruitment options, or missing from
+#' \code{repro.file} get none of the three.
 #'
 #' If \code{unfished = TRUE}, targets are created for an unfished scenario
 #' instead: only fished groups (\code{IsFished == 1}) are included, and their
@@ -40,10 +50,8 @@
 #'   (\code{<prefix>_OUTBiomIndx.txt}).  Required when
 #'   \code{initial.conditions = TRUE}.  Default: \code{NULL}.
 #' @param fg.file Character.  Path to the functional groups CSV file.  Must
-#'   contain the columns \code{Code}, \code{Name} and \code{IsFished}.
-#' @param repro.file Character.  Path to the reproduction option CSV file with
-#'   columns \code{Code} and \code{flagrecruit}, as written by
-#'   \code{repro_option}.  Default: \code{inputs/reproduction-option.csv}.
+#'   contain the columns \code{Code}, \code{Name}, \code{IsFished} and
+#'   \code{GroupType}.
 #' @param output.path Character.  Directory where output files are written.
 #'   Target time series are written to its \code{data} sub-directory, which
 #'   is created if needed.  Default: \code{inputs}.
@@ -52,8 +60,6 @@
 #'   \code{c("PS", "PL", "DC", "DL", "DR")}.
 #' @param dt.timeseries Integer.  Number of time steps in each target time
 #'   series.  Default: \code{5}.
-#' @param mq.groups Character vector.  Codes of the groups for which an
-#'   \code{mQ} factor is calibrated.  Default: \code{c("ZS", "ZM", "ZL")}.
 #' @param unfished Logical.  If \code{TRUE}, create targets for an unfished
 #'   scenario (see Details).  Default: \code{FALSE}.
 #' @param factor.unfished Numeric.  Factor applied to the initial biomass of
@@ -69,6 +75,18 @@
 #'   \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
 #'   and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
 #'   \code{biomass_timeseries.csv}.
+#' @param biology.prm Character.  Name of the Atlantis biology parameter file
+#'   in \code{inputs/model_configuration}.
+#' @param parameter.file Character.  Name of the parameter table CSV file in
+#'   \code{inputs}, with one row per functional group and one column per
+#'   parameter to calibrate (any of \code{mum}, \code{BHalpha},
+#'   \code{BHbeta}, \code{KDENR}, \code{mfc}, \code{mQ}, \code{mL},
+#'   \code{C} and \code{E}), set to \code{1} if the parameter is calibrated
+#'   for that group.  Default: \code{"parameter_table.csv"}.
+#' @param repro.file Character.  Name of the reproduction option CSV file in
+#'   \code{inputs}, with columns \code{Code} and \code{flagrecruit}, as
+#'   written by \code{\link{repro_option}}.  Default:
+#'   \code{"reproduction-option.csv"}.
 #'
 #' @return Invisibly, a named list with elements \code{settings} (calibration
 #'   settings data frame) and \code{parameters} (calibration parameters data
@@ -99,17 +117,17 @@
 #' }
 create_target_files_biomass <- function(biom.indx = NULL,
                                         fg.file,
-                                        repro.file = "reproduction-option.csv",
                                         output.path = here::here("inputs"),
                                         not.calibrated,
                                         dt.timeseries = 5,
-                                        mq.groups = c("ZS", "ZM", "ZL"),
                                         unfished = FALSE,
                                         factor.unfished = 1.3,
                                         initial.conditions = TRUE,
                                         time.series = FALSE,
                                         biomass.file = "biomass_timeseries.csv",
-                                        biology.prm){
+                                        biology.prm,
+                                        parameter.file = "parameter_table.csv",
+                                        repro.file = "reproduction-option.csv"){
 
   # Targets come from either initial conditions or an observed time series
   if (initial.conditions == time.series){
@@ -120,7 +138,6 @@ create_target_files_biomass <- function(biom.indx = NULL,
   }
 
   config <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
-  repro.option <- utils::read.csv(here::here("inputs",repro.file))
 
   # Suffix for output files, so unfished outputs do not overwrite standard ones
   suffix <- if (unfished) "_unfished" else ""
@@ -215,7 +232,7 @@ create_target_files_biomass <- function(biom.indx = NULL,
   ##################
   # Create code for runModel function
   ##################
-  R_code <- paste0(variable, ' = unname(atlantis.biomass["', Bio.groups$Code, '"]), ')
+  R_code <- paste0(variable, ' = unname(unlist(atlantis.biomass["', Bio.groups$Name, '"])), ')
   writeLines(R_code, con = file.path(output.path, paste0("biomass", suffix, ".txt")))
 
   R_code <- paste0(variable, ' = rep(0,', dt.timeseries, '), ')
@@ -227,20 +244,74 @@ create_target_files_biomass <- function(biom.indx = NULL,
   # paste0() on an empty vector would return a single malformed name
 
 
-  Bio.groups_repro <- merge(Bio.groups, repro.option, by = "Code")
+  # Parameters to calibrate for each group (1) or not (0)
+  param.table <- read_parameter_table(parameter.file)
 
-  calib.param <- rbind(
-    # mum
-    make_param("mum_", Bio.groups$Code, "_factor"),
-    # BHalpha
-    make_param("BHalpha_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit != 12], "_factor"),
-    # KDENR
-    make_param("KDENR_", Bio.groups_repro$Code[Bio.groups_repro$flagrecruit == 12], "_factor"),
-    # mfc, not needed when fishing is turned off
-    make_param("mfc_", if (unfished) character(0) else Bio.groups$Code[Bio.groups$IsFished == 1], "_factor"),
-    # mQ
-    make_param("", mq.groups, "_mQ_factor")
-  )
+  # Recruitment option of each group, as written by repro_option()
+  repro.option <- utils::read.csv(here::here("inputs", repro.file))
+
+  # Group type from the parameter table, otherwise from the functional group file
+  if (!"GroupType" %in% names(param.table)){
+    param.table <- merge(param.table, config[, c("Code", "GroupType")], by = "Code")
+  }
+
+  # Only groups that are turned on and calibrated
+  if ("IsTurnedOn" %in% names(param.table)) param.table <- param.table[param.table$IsTurnedOn == 1, ]
+  if ("IsCalibrated" %in% names(param.table)) param.table <- param.table[param.table$IsCalibrated == 1, ]
+  param.table <- param.table[param.table$Code %in% Bio.groups$Code, ]
+
+  # Recruitment parameters only apply to vertebrates
+  vertebrate.types <- c("FISH", "SHARK", "BIRD", "MAMMAL")
+
+  parameters <- setdiff(names(param.table), c("Code", "GroupType", "IsTurnedOn", "IsCalibrated"))
+
+  calib.param.ls <- list()
+
+  for (eachparameter in parameters){
+
+    # Groups flagged with 1 for this parameter
+    codes <- param.table$Code[param.table[[eachparameter]] == 1]
+
+    if (eachparameter %in% c("BHalpha", "BHbeta", "KDENR")){
+      codes <- intersect(codes, param.table$Code[param.table$GroupType %in% vertebrate.types])
+    }
+
+    # KDENR is used when flagrecruit is 12, BHalpha and BHbeta when it is 3 (Beverton-Holt)
+    if (eachparameter == "KDENR"){
+      codes <- intersect(codes, repro.option$Code[repro.option$flagrecruit == 12])
+    }
+    if (eachparameter %in% c("BHalpha", "BHbeta")){
+      codes <- intersect(codes, repro.option$Code[repro.option$flagrecruit == 3])
+    }
+
+    # Fishing mortality only applies to fished groups
+    if (eachparameter == "mfc"){
+      codes <- intersect(codes, config$Code[config$IsFished == 1])
+    }
+
+    calib.param.ls[[eachparameter]] <- switch(eachparameter,
+      # mum
+      "mum" = make_param("mum_", codes, "_factor"),
+      # BHalpha
+      "BHalpha" = make_param("BHalpha_", codes, "_factor"),
+      # BHbeta
+      "BHbeta" = make_param("BHbeta_", codes, "_factor"),
+      # KDENR
+      "KDENR" = make_param("KDENR_", codes, "_factor"),
+      # mfc, not needed when fishing is turned off
+      "mfc" = make_param("mfc_", if (unfished) character(0) else codes, "_factor"),
+      # mQ
+      "mQ" = make_param("", codes, "_mQ_factor"),
+      # mL
+      "mL" = make_param("", codes, "_mL_factor"),
+      # C
+      "C" = make_param("C_", codes, "_factor"),
+      # E
+      "E" = make_param("E_", codes, "_factor")
+    )
+  }
+
+  calib.param <- do.call(rbind, unname(calib.param.ls))
 
   utils::write.csv(calib.param, file.path(output.path, if (unfished) "calibration-parameters-unfished.csv" else "calibration-parameters-complete.csv"), row.names = FALSE)
 
