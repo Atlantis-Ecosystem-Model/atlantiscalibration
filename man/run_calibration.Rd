@@ -4,17 +4,21 @@
 \alias{run_calibration}
 \title{Run the Atlantis model calibration}
 \usage{
-run_calibration(control)
+run_calibration(calibration)
 }
 \arguments{
-\item{control}{A named list of calibration control parameters passed to
-\code{\link[calibrar]{calibrate}}.  Must contain at minimum
-\code{nCores} (integer, number of parallel workers).}
+\item{calibration}{Named list returned by \code{\link{read_calibration}},
+with elements \code{setup}, \code{observed}, \code{forcing} (data frame
+with columns \code{paropt}, \code{parmin}, \code{parmax} and
+\code{parphase}), \code{objfn} (the objective function) and
+\code{control} (control parameters passed to
+\code{\link[calibrar]{calibrate}}, with at minimum \code{nCores}).}
 }
 \value{
 The object returned by \code{\link[calibrar]{calibrate}}: a list
 with the optimised parameter vector, objective function value, and
-convergence diagnostics.
+convergence diagnostics.  The results are also saved by \pkg{calibrar}
+in \code{<control$restart.file>.results}.
 }
 \description{
 Sets up a parallel cluster, exports the required objects and libraries to
@@ -22,16 +26,9 @@ each worker, and runs the AHR-ES optimisation algorithm via
 \code{\link[calibrar]{calibrate}}.  The cluster is stopped on exit
 regardless of whether optimisation succeeds or fails.
 }
-\details{
-The function relies on several objects being present in the calling
-environment: \code{objfn} (the objective function), \code{forcing}
-(a list with elements \code{paropt}, \code{parmin}, \code{parmax}, and
-\code{parphase}), \code{observed} (calibration targets), \code{setup},
-and \code{likelihood_function}.
-}
 \examples{
 \dontrun{
-  ctrl <- list(nCores = 4, maxIter = 500)
-  result <- run_calibration(control = ctrl)
+  calibration <- read_calibration(...)
+  result <- run_calibration(calibration)
 }
 }

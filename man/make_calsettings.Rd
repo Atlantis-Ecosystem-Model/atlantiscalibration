@@ -50,17 +50,18 @@ to calibrate, set to 1 if the parameter is calibrated for that group (see
 \code{\link{create_target_files_biomass}}).  Default: "parameter_table.csv".}
 }
 \value{
-Invisibly returns NULL. Writes calibration settings CSV to
-inputs/calibration_settings.csv
+Invisibly returns NULL. Writes one calibration settings CSV file for
+each target type (e.g., \code{calibration_settings_biomass.csv},
+\code{calibration_settings_weight.csv}) to inputs/.
 }
 \description{
 Generates a calibration settings file for functional groups in an Atlantis model.
 Creates a dataframe specifying which groups to calibrate, their associated variables,
 calibration weights, and data file paths.
 
-Only groups with \code{IsTurnedOn == 1} and \code{IsCalibrated == 1} in the
-functional group file are calibrated.  For each target type in
-\code{var.type}, the corresponding target files are also created (see
+Only groups with \code{IsCalibrated == 1} in the parameter table are calibrated.
+For each target type in \code{var.type}, a separate calibration settings file
+and corresponding target files are created (see
 \code{\link{create_target_files_biomass}},
 \code{\link{create_target_files_waa}},
 \code{\link{create_target_files_abund}} and

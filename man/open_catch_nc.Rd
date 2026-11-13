@@ -16,7 +16,8 @@ open_catch_nc(path, prefix = NULL)
 An open \code{ncdf4} connection object.
 }
 \description{
-Opens the \code{<prefix>_OUTCATCH.nc} file found in \code{path} using
+Opens the \code{<prefix>_OUTCATCH.nc} file found in \code{path}, or
+\code{<prefix>CATCH.nc} if it does not exist, using
 \code{ncdf4::nc_open()}.
 }
 \examples{

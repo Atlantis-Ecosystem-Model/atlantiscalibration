@@ -7,7 +7,8 @@
 create_target_files_abund(
   init.file,
   output.path = here::here("inputs"),
-  dt.timeseries = 5
+  dt.timeseries = 5,
+  parameter.file = "parameter_table.csv"
 )
 }
 \arguments{
@@ -20,6 +21,10 @@ created if needed.  Default: \code{inputs}.}
 
 \item{dt.timeseries}{Integer.  Number of time steps in each target time
 series.  Default: \code{5}.}
+
+\item{parameter.file}{Character.  Name of the parameter table CSV file in
+\code{inputs/}, used to filter which groups to create targets for.
+Default: \code{"parameter_table.csv"}.}
 }
 \value{
 Invisibly, the calibration settings data frame.  Called for its
@@ -30,12 +35,13 @@ Uses the initial abundance at age of each age-structured functional group
 (the \code{<Group><age>_Nums} variables of the Atlantis initial conditions
 NetCDF file, summed over boxes and layers) as a constant target for
 \pkg{calibrar}, and writes all the files needed to set up an abundance
-calibration:
+calibration. Only creates targets for groups with \code{IsCalibrated == 1}
+in the parameter table.
 \itemize{
 \item \code{data/<Group>_Nums.csv}: one target per group, with a
 \code{Time} column and one column per age class.  Age classes with
 zero abundance are set to \code{NA}.
-\item \code{calibration_settings_abund.csv}: calibration settings for
+\item \code{calibration_settings_abundance.csv}: calibration settings for
 each abundance target, using a multinomial likelihood.
 \item \code{abund.txt} and \code{abund_crash.txt}: R code snippets used
 to build the output list of the run model function, for a successful

@@ -6,39 +6,6 @@ The example included here is applied to the **Southeast Tasmania Atlantis Model*
 
 ![V3 Figure 1 papier calibration](https://github.com/user-attachments/assets/0f1aaa58-dfaf-4231-869b-87db8c276bf0)
 
-# Folder structure
-
-## R scripts
-
-- `runModel_Atlantis.R`  
-  Wrapper function used by **calibrar** to run the Atlantis model with a new set of parameters. This script launches the model simulation and extracts the model outputs required for the calibration process.
-
-- `calibrate_MPI.R`  
-  Main script used to run the calibration procedure using the **calibrar** package. It loads all the calibration settings, parameters to estimate, and launches the optimization routine.
-
-## CSV files
-
-- `calibration_settings.csv`  
-  Configuration file defining targets location and setup. 
-
-- `calibration-parameters-complete.csv`  
-  Table listing the calibrated Atlantis parameters with their initial values and bounds.
-
-## Folders
-
-- `configuration`  
-  Contains the Atlantis configuration.
-
-- `data`  
-  Calibration targets.
-
-- `keep_track_calibration`  
-  Stores the outputs of each automated calibration trial with **calibrar**. Scripts to explore the outputs of calibrar are available. 
-
-- `create_Atlantis_calibrar_files`  
-  Scripts used to generate the input files required by **calibrar**, including formatted parameter tables and calibration configuration files.
-  We recommand to use them as example only if needed. These script are quite basic. 
-
 # Recommendations for performing an Atlantis calibration with calibrar
 
 To perform the Atlantis Calibration with calibrar, review our material in this order:
@@ -61,5 +28,38 @@ To perform the Atlantis Calibration with calibrar, review our material in this o
 
 5. Explore the **calibrar** package and associated publication:  
    https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.14452
-   
+
+## Development Setup
+
+### Installation
+
+To install the package for development or use:
+
+```r
+devtools::install()
+```
+
+**Important:** For parallel calibration to work, the package must be properly installed in the system library (not just loaded with `devtools::load_all()`). This is because parallel worker nodes need access to the installed package.
+
+### Best Practices for Development
+
+To avoid package build errors and database corruption issues:
+
+1. **Always use a fresh R session before installing**
+   - Close and restart R completely before running `devtools::install()`
+   - This prevents conflicts between development-mode loading and installation
+
+2. **Don't mix development modes in the same session**
+   - During development: use `devtools::load_all()` to test changes
+   - For testing/deployment: use `devtools::install()` in a **fresh R session**
+   - Never call both approaches in the same R session
+
+If you encounter a "lazy-load database is corrupt" error:
+
+```r
+# Clean up and reinstall
+remove.packages('atlantiscalibration')
+devtools::install()
+```
+
    

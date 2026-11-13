@@ -4,12 +4,13 @@
 #' (the \code{<Group><age>_Nums} variables of the Atlantis initial conditions
 #' NetCDF file, summed over boxes and layers) as a constant target for
 #' \pkg{calibrar}, and writes all the files needed to set up an abundance
-#' calibration:
+#' calibration. Only creates targets for groups with \code{IsCalibrated == 1}
+#' in the parameter table.
 #' \itemize{
 #'   \item \code{data/<Group>_Nums.csv}: one target per group, with a
 #'     \code{Time} column and one column per age class.  Age classes with
 #'     zero abundance are set to \code{NA}.
-#'   \item \code{calibration_settings_abund.csv}: calibration settings for
+#'   \item \code{calibration_settings_abundance.csv}: calibration settings for
 #'     each abundance target, using a multinomial likelihood.
 #'   \item \code{abund.txt} and \code{abund_crash.txt}: R code snippets used
 #'     to build the output list of the run model function, for a successful
@@ -23,6 +24,9 @@
 #'   created if needed.  Default: \code{inputs}.
 #' @param dt.timeseries Integer.  Number of time steps in each target time
 #'   series.  Default: \code{5}.
+#' @param parameter.file Character.  Name of the parameter table CSV file in
+#'   \code{inputs/}, used to filter which groups to create targets for.
+#'   Default: \code{"parameter_table.csv"}.
 #'
 #' @return Invisibly, the calibration settings data frame.  Called for its
 #'   side effect of writing files to \code{output.path}.
@@ -36,10 +40,17 @@
 #' }
 create_target_files_abund <- function(init.file,
                                       output.path = here::here("inputs"),
-                                      dt.timeseries = 5){
+                                      dt.timeseries = 5,
+                                      parameter.file = "parameter_table.csv"){
 
   initial.condi <- ncdf4::nc_open(here::here("inputs","model_configuration",init.file))
   on.exit(ncdf4::nc_close(initial.condi))
+
+  # Read parameter table to filter which groups to create targets for
+  param.table <- readr::read_csv(here::here("inputs", parameter.file), show_col_types = FALSE)
+  calibrated.groups <- param.table |>
+    dplyr::filter(IsCalibrated == 1) |>
+    dplyr::pull(Code)
 
   data.path <- file.path(output.path, "data")
   dir.create(data.path, showWarnings = FALSE, recursive = TRUE)
@@ -56,6 +67,9 @@ create_target_files_abund <- function(init.file,
   group <- sub("[0-9]+_Nums$", "", nums.vars)
   age <- as.integer(sub("^.*?([0-9]+)_Nums$", "\\1", nums.vars))
   species <- unique(group)
+
+  # Filter to only groups marked for calibration in parameter table
+  species <- intersect(species, calibrated.groups)
 
   for (i in seq_along(species)){
     is.sp <- group == species[i]
@@ -74,31 +88,46 @@ create_target_files_abund <- function(init.file,
   ##################
   # Create calibration setting file
   ##################
-  variable <- paste0(species, "_Nums")
+  if(length(species) == 0){
+    warning("No abundance targets created. Abundance is a target but no age-structured groups have IsCalibrated == 1 in parameter_table.csv")
+    # Create empty settings dataframe with correct structure
+    settings <- data.frame(
+      variable = character(),
+      type = character(),
+      calibrate = logical(),
+      weight = numeric(),
+      use_data = logical(),
+      file = character(),
+      varid = character(),
+      col_skip = numeric()
+    )
+  } else {
+    variable <- paste0(species, "_Nums")
 
-  settings <- data.frame(
-    variable = variable,
-    type = "multinom",
-    calibrate = TRUE,
-    weight = 1,
-    use_data = TRUE,
-    file = paste0("data/", variable, ".csv"),
-    varid = NA,
-    col_skip = 1  # skip the Time column, keep all age classes
-  )
+    settings <- data.frame(
+      variable = variable,
+      type = "multinom",
+      calibrate = TRUE,
+      weight = 1,
+      use_data = TRUE,
+      file = paste0("data/", variable, ".csv"),
+      varid = NA,
+      col_skip = 1  # skip the Time column, keep all age classes
+    )
 
-  utils::write.csv(settings, file.path(output.path, "calibration_settings_abund.csv"),
+    ##################
+    # Create code for runModel function
+    ##################
+    R_code <- paste0(variable, ' = unname(unlist(atlantis.abundance["', species, '"])), ')
+    writeLines(R_code, con = file.path(output.path, "abund.txt"))
+
+    n.ages <- as.vector(table(group)[species])
+    R_code <- paste0(variable, ' = matrix(0, nrow = ', dt.timeseries, ', ncol = ', n.ages, '), ')
+    writeLines(R_code, con = file.path(output.path, "abund_crash.txt"))
+  }
+
+  utils::write.csv(settings, file.path(output.path, "calibration_settings_abundance.csv"),
                    row.names = FALSE)
-
-  ##################
-  # Create code for runModel function
-  ##################
-  R_code <- paste0(variable, ' = unname(unlist(atlantis.abundance["', species, '"])), ')
-  writeLines(R_code, con = file.path(output.path, "abund.txt"))
-
-  n.ages <- as.vector(table(group)[species])
-  R_code <- paste0(variable, ' = matrix(0, nrow = ', dt.timeseries, ', ncol = ', n.ages, '), ')
-  writeLines(R_code, con = file.path(output.path, "abund_crash.txt"))
 
   invisible(settings)
 }

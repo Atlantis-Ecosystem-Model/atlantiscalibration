@@ -42,10 +42,6 @@ The workflow has six steps:
 5. Run the calibration in parallel.
 6. Inspect the results.
 
-```{r load-package}
-library(atlantiscalibration)
-```
-
 ## 1. Model configuration and input files
 
 The package uses the following folder structure (all paths are relative to the
@@ -133,10 +129,10 @@ The recruitment option of each group is read from the biology parameter file
 with `repro_option()`, which writes `inputs/reproduction-option.csv`:
 
 ```{r repro-option}
-repro_option(fg.file, biology.prm)
+atlantiscalibration::repro_option(fg.file, biology.prm)
 
 parameter.file <- "parameter_table.csv"
-read_parameter_table(parameter.file)
+atlantiscalibration::read_parameter_table(parameter.file)
 ```
 
 ## 3. Create the calibration targets, settings and parameters
@@ -155,7 +151,9 @@ read_parameter_table(parameter.file)
   Each target is constant over `dt.timeseries` time steps.  Biomass targets
   can also be created from an observed biomass time series (see
   `create_target_files_biomass()`, `time.series = TRUE`).
-* **`inputs/calibration_settings.csv`**: one row per target, with its
+* **`inputs/calibration_settings_*.csv`**: one CSV file per target type
+  (e.g., `calibration_settings_biomass.csv`, `calibration_settings_abundance.csv`),
+  with one row per target in that type. Each row contains the
   likelihood (`type`), weight, data file and column (`varid`).  Use `w.vector`
   to give different weights to some groups.
 * **`inputs/calibration-parameters-complete.csv`**: one row per factor to
@@ -166,13 +164,13 @@ read_parameter_table(parameter.file)
   in this file before step 4.
 
 ```{r make-calsettings}
-var.type      <- c("biomass", "weight", "abundance", "catch") # target types
+var.type      <- c("biomass","abundance") #  "weight", "abundance", "catch" target types
 fun.type      <- "lnorm2"  # likelihood for biomass, weight and catch targets
-dt.timeseries <- 5         # number of time steps of each target
+dt.timeseries <- 365        # number of time steps of each target in days, equivalent to tstop in the run file
 w.vector      <- NULL      # different weights for some groups, e.g.
 # w.vector <- tibble::tibble(Code = c("FPS", "FVS"), weight_new = c(0.5, 0.5))
 
-make_calsettings(fg.file        = fg.file,
+atlantiscalibration::make_calsettings(fg.file = fg.file,
                  var.type       = var.type,
                  fun.type       = fun.type,
                  dt.timeseries  = dt.timeseries,
@@ -188,8 +186,8 @@ make_calsettings(fg.file        = fg.file,
 `?calibrar::calibration_setup`) or a user-defined function.  The package
 includes `likelihood_function()`, which penalises simulated values outside a
 minimum-maximum envelope given by two columns of observed data; to use it, set
-`type` to `likelihood_function` for those targets in
-`calibration_settings.csv`.
+`type` to `likelihood_function` for those targets in any of the
+`calibration_settings_*.csv` files.
 
 ## 4. Read the calibration inputs and build the objective function
 
@@ -234,15 +232,18 @@ each model run, so `master` must contain all the files needed to run the
 model, and the arguments of `run_model()` are file names relative to it.
 
 ```{r read-calibration}
-calibration <- read_calibration(
-  calibration.settings   = "calibration_settings.csv",
+calibration <- atlantiscalibration::read_calibration(
+  calibration.settings   = "calibration_settings_*.csv",
   calibration.parameters = "calibration-parameters-complete.csv",
-  n.Cores      = 32,  # parallel workers and model runs per generation
-  maxgen       = 5,   # maximum number of generations; increase for production
-  master       = "/home/atlantis/Atlantis_Calibration/configuration/",
-  run          = "/home/atlantis/Atlantis_Calibration/RUN",
-  restart.file = "/home/atlantis/Atlantis_Calibration/restart_file",
+  n.Cores      = 16,  # parallel workers and model runs per generation
+  maxgen       = 3,   # maximum number of generations; increase for production
+  master       = here::here("inputs","model_configuration"),
+  run          = here::here("RUN"),
+  restart.file = here::here("inputs","restart_file"),
   track.path   = here::here("outputs", "keep_track_calibration"), # parameter files of each run
+  REPORT = 1,    # number of iterations to run before saving a restart
+  parallel = TRUE, #run as parallel
+  no.trace = 3, #global fitness and partial fitness
   # arguments of run_model(), relative to the master directory
   prefix        = "outputFolder/outputSETAS",            # -o outputSETAS.nc, -d outputFolder
   fg.file       = fg.file,
@@ -271,8 +272,12 @@ to the noisy, expensive fitness evaluations of ecosystem models.  Parameters
 are estimated in the phases given by `parphase`.
 
 ```{r run-calibration}
-results <- run_calibration(calibration)
+
+results <- atlantiscalibration::run_calibration(calibration)
 ```
+
+**Note:** For parallel calibration to work, the `atlantiscalibration` package must be
+installed in the system library library(atlantiscalibratio)
 
 If the calibration is interrupted, running it again with the same
 `restart.file` continues from the last saved generation.

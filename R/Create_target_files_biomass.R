@@ -12,7 +12,7 @@
 #' \itemize{
 #'   \item \code{data/<Code>_biomass.csv}: one target time series per
 #'     calibrated group, with columns \code{Time} and \code{Biomass}.
-#'   \item \code{calibration_settings.csv}: calibration settings for each
+#'   \item \code{calibration_settings_biomass.csv}: calibration settings for each
 #'     biomass target.
 #'   \item \code{calibration-parameters-complete.csv}: parameter factors to
 #'     estimate for each group, as set in \code{parameter.file}, with

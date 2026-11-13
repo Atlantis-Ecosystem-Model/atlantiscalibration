@@ -4,34 +4,85 @@
 \alias{read_calibration}
 \title{Read calibration inputs and save the optimiser control settings}
 \usage{
-read_calibration(calibration.settings, calibration.parameters, n.Cores)
+read_calibration(
+  calibration.settings,
+  calibration.parameters,
+  n.Cores,
+  master,
+  run,
+  restart.file,
+  maxgen = 5,
+  track.path = here::here("outputs", "keep_track_calibration"),
+  REPORT = 1,
+  parallel = TRUE,
+  no.trace = 3,
+  ...
+)
 }
 \arguments{
-\item{calibration.settings}{Character.  Name of the calibration settings
-CSV file in \code{inputs} (e.g. \code{"calibration_settings.csv"}), as
-written by \code{\link{make_calsettings}}.}
+\item{calibration.settings}{Character.  Pattern to match calibration settings
+CSV files in \code{inputs} (e.g. \code{"calibration_settings_*.csv"}), as
+written by \code{\link{make_calsettings}}. All matching files are read and
+combined. Alternatively, a single filename for backward compatibility.}
 
 \item{calibration.parameters}{Character.  Name of the calibration
 parameters CSV file in \code{inputs} (e.g.
 \code{"calibration-parameters-complete.csv"}), with parameter names in
 the first column.}
+
+\item{n.Cores}{Integer.  Number of parallel workers, also used as the
+population size (number of model runs per generation).}
+
+\item{master}{Character.  Directory with all the files needed to run
+Atlantis (model files and the \code{.sh} shell script).  It is copied to a run
+directory for each model run.}
+
+\item{run}{Character.  Directory where the model runs are done.}
+
+\item{restart.file}{Character.  Name of the restart file, used to restart
+an interrupted calibration and to save the results.}
+
+\item{maxgen}{Integer.  Maximum number of generations (iterations) of the
+optimiser.  Default: \code{5}.}
+
+\item{track.path}{Character.  Folder where the parameter files used in
+each run of each iteration are saved, as
+\code{iteration_<iteration>/run_<run>_<file>} (see
+\code{\link{keep_track_prm}}).  Set to \code{NULL} to not save them.
+Default: \code{outputs/keep_track_calibration}.}
+
+\item{...}{Arguments passed to \code{\link{run_model}} through
+\code{\link{make_objfn}} (\code{prefix}, \code{fg.file},
+\code{biom.indx}, \code{run.prm} and \code{dt.timeseries}).}
 }
 \value{
 Invisibly, a named list with elements \code{setup},
 \code{observed}, \code{forcing}, \code{objfn} (see
-\code{\link{make_objfn}}) and \code{control}.  Also writes
+\code{\link{make_objfn}}) and \code{control}. The \code{control} element
+is a list containing optimiser settings including \code{REPORT}
+(number of iterations before saving), \code{parallel} (logical, enable
+parallel computing), and \code{trace} (verbosity level for global fitness
+and partial fitness output).  Also writes
 \code{inputs/forcing.csv} and \code{inputs/control.rds}.
 }
 \description{
 Reads the calibration settings and observed targets with \pkg{calibrar},
-reads the calibration parameters table, and builds the objective function
-with \code{\link[calibrar]{calibration_objFn}}.  Writes the parameters to
-\code{inputs/forcing.csv} and the optimiser control list to
-\code{inputs/control.rds}.
+reads the calibration parameters table, builds the objective function
+with \code{\link{make_objfn}} and sets up the optimiser control list.
+Writes the parameters to \code{inputs/forcing.csv} and the optimiser
+control list to \code{inputs/control.rds}.
 }
 \examples{
 \dontrun{
-  read_calibration(calibration.settings   = "calibration_settings.csv",
-                   calibration.parameters = "calibration-parameters-complete.csv")
+  calibration <- read_calibration(
+    calibration.settings   = "calibration_settings_*.csv",
+    calibration.parameters = "calibration-parameters-complete.csv",
+    n.Cores      = 32,
+    master       = "model_configuration/",
+    run          = "RUN",
+    restart.file = "restart_file",
+    prefix = "outputFolder/outputSETAS", fg.file = "SETasGroupsDem.csv",
+    biom.indx = "outputFolder/outputSETASBiomIndx.txt",
+    run.prm = "VMPA_setas_run_fishing_F_Trunk.prm", dt.timeseries = 5)
 }
 }

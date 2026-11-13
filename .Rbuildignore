@@ -1,2 +1,16 @@
 ^atlantiscalibration\.Rproj$
 ^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^\.Rhistory$
+^TODO$
+^RUN$
+^outputs$
+^\.RData$
+^\.Rbuildignore$
+^CONTRIBUTING\.md$
+^\.DS_Store$
+^.*\.rdb$
+^.*\.rdx$
+^vignettes/.*\.html$
+^vignettes/.*_files$

@@ -3,7 +3,7 @@ Title: Package to calibrate the Atlantis ecosystem model using the **calibrar** 
 Version: 0.0.0.9000
 Authors@R: c(
     person("Alaia", "Morell", role = c("aut")),
-    person("Hem Nalini", "Morzaria-Luna", role = c("aut")))
+    person("Hem Nalini", "Morzaria-Luna", role = c("aut", "cre"), email = "hmorzarialuna@gmail.com"))
 Description: Perform the calibration of models built on the Atlantis ecosystem modeling framework using the optimization package Calibration
 License: CC BY-NC https://creativecommons.org/licenses/by-nc/4.0/
 Encoding: UTF-8

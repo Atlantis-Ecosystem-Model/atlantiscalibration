@@ -19,8 +19,8 @@ minmaxt = function(obs, sim) {
   return(output)
 }
 
-# reads calibration informations
-setup = calibrar::calibration_setup(file="calibration_settings.csv")
+# reads calibration information
+setup = calibrar::calibration_setup(file="calibration_settings_biomass.csv")
 observed = calibrar::calibration_data(setup = setup,
                            path=".",
                            file = NULL,

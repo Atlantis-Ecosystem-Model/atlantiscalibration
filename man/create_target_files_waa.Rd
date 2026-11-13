@@ -7,7 +7,8 @@
 create_target_files_waa(
   init.file,
   output.path = here::here("inputs"),
-  dt.timeseries = 5
+  dt.timeseries = 5,
+  parameter.file = "parameter_table.csv"
 )
 }
 \arguments{
@@ -20,6 +21,10 @@ created if needed.  Default: \code{inputs}.}
 
 \item{dt.timeseries}{Integer.  Number of time steps in each target time
 series.  Default: \code{5}.}
+
+\item{parameter.file}{Character.  Name of the parameter table CSV file in
+\code{inputs/}, used to filter which groups to create targets for.
+Default: \code{"parameter_table.csv"}.}
 }
 \value{
 Invisibly, the calibration settings data frame.  Called for its
@@ -31,12 +36,13 @@ target for \pkg{calibrar}.  The weight is calculated from the
 \code{_FillValue} attribute of the \code{<Cohort>_ResN} and
 \code{<Cohort>_StructN} variables of the Atlantis initial conditions NetCDF
 file as \eqn{(ResN + StructN) \times 20 \times 5.7 / 10^6}, which converts
-mg N per individual to tonnes wet weight.  Writes all the files needed to set
-up a weight-at-age calibration:
+mg N per individual to tonnes wet weight.  Only creates targets for cohorts
+belonging to groups with \code{IsCalibrated == 1} in the parameter table.
+Writes all the files needed to set up a weight-at-age calibration:
 \itemize{
 \item \code{data/<Cohort>_w.csv}: one target time series per cohort,
 with columns \code{Time} and \code{Weight}.
-\item \code{calibration_settings_waa.csv}: calibration settings for each
+\item \code{calibration_settings_weight.csv}: calibration settings for each
 weight-at-age target.
 \item \code{Waa.txt} and \code{Waa_crash.txt}: R code snippets used to
 build the output list of the run model function, for a successful run

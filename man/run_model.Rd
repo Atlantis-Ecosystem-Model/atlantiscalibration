@@ -5,67 +5,70 @@
 \title{Run one step of the Atlantis calibration model}
 \usage{
 run_model(
-  bio.prm,
   param,
   names,
-  param.file = "calibration-parameters.csv",
-  sh.file,
+  variables,
   prefix,
   fg.file,
   biom.indx,
-  harvest.prm = NULL
+  run.prm,
+  dt.timeseries,
+  param.file = "calibration-parameters.csv",
+  track.path = NULL,
+  ...
 )
 }
 \arguments{
-\item{bio.prm}{Character.  Path to the Atlantis biology parameter
-\code{.prm} file that will be edited in place.}
-
 \item{param}{Numeric vector of parameters in log scale.  Back-transformed
 via \code{exp()} before use.}
 
-\item{names}{Character vector of parameter names parallel to \code{param}.
-Used to assign names to \code{param} and to identify which parameter type
-each element belongs to.}
+\item{names}{Character vector of parameter names parallel to \code{param}.}
 
-\item{param.file}{Character.  Path of the CSV file written with the
-back-transformed parameter values at each iteration.  Default:
-\code{"calibration-parameters.csv"}.}
-
-\item{sh.file}{Character.  Name of the shell script used to launch the
-Atlantis run.  Default: \code{"amps_cal.sh"}.}
+\item{variables}{Character vector.  Names of the calibration targets
+(\code{setup$variable}), which are the names of the returned list.}
 
 \item{prefix}{Character.  Prefix path for the Atlantis NetCDF output files
-(e.g. \code{"outputFolder/AMPS"}).  Default: \code{"outputFolder/AMPS"}.}
+(e.g. \code{"outputFolder/AMPS"}).}
 
-\item{fg.file}{Character.  Path to the functional groups CSV file containing
-at minimum the columns \code{Code}, \code{Name}, \code{NumCohorts}, and
-\code{IsTurnedOn}.  Default: \code{<path>/PugetSoundAtlantisFunctionalGroups_2024_V1.csv}.}
+\item{fg.file}{Character.  Name of the functional groups CSV file.}
 
 \item{biom.indx}{Character.  Relative path to the biomass index text file
-used to detect whether the simulation completed.  Default:
-\code{"outputFolder/AMPS_OUTBiomIndx.txt"}.}
+written by the run (e.g. \code{"outputFolder/AMPS_OUTBiomIndx.txt"}),
+used to detect whether the simulation completed.}
 
-\item{harvest.prm}{Character.  Path to the Atlantis harvest parameter
-\code{.prm} file.  Required when \code{names} includes \code{mfc}
-factors.  Default: \code{NULL}.}
+\item{run.prm}{Character.  Name of the Atlantis run parameter file, used
+to read \code{tstop}.}
+
+\item{dt.timeseries}{Integer.  Number of time steps in each target.}
+
+\item{param.file}{Character.  Name of the CSV file written with the
+back-transformed parameter values at each run.  Default:
+\code{"calibration-parameters.csv"}.}
+
+\item{track.path}{Character.  Absolute path of the folder where the
+parameter files used in each run are saved (see
+\code{\link{keep_track_prm}}).  If \code{NULL} (default), they are not
+saved.}
+
+\item{...}{Other arguments passed by \pkg{calibrar} (e.g. \code{forcing}),
+not used.}
 }
 \value{
-A named list of modeled output indicators.  Biomass elements are
-named \code{<Code>_biomass} where \code{Code} comes from the functional
-groups CSV (e.g. \code{MA_biomass}).  Weight-at-age elements are named
-\code{<Name><age>_w} where \code{Name} is the functional group long name
-and \code{age} runs from \code{1} to \code{NumCohorts}
-(e.g. \code{ChinookY_Fish1_w}, \code{Trans_Orca10_w}).  If the simulation
-stopped prematurely all indicators are zero-filled vectors of length
-\code{dt.timestep}.
+A named list of modeled output indicators, one element per target
+in \code{variables}.
 }
 \description{
-Core objective function designed for use with the \pkg{calibrar} package.
+Model function called by \pkg{calibrar} at every parameter proposal.
 Receives a log-scale parameter vector, back-transforms it via \code{exp()},
 writes a parameter snapshot CSV, edits the relevant entries in the Atlantis
-biology parameter file (\code{bio.prm}), executes the simulation via a shell
+biology (and harvest) parameter files, executes the simulation via a shell
 script, reads the outputs, and returns a named list of modeled indicators
 for comparison against observations.
+
+\pkg{calibrar} calls this function as \code{run_model(par, ...)}, where
+\code{...} are the extra arguments given to \code{\link{make_objfn}}.  It
+runs in the working directory set by \pkg{calibrar} (a copy of
+\code{control$master}), so all file names are relative to that directory.
 
 The parameters edited are those in \code{names}, as created from the
 parameter table by \code{\link{create_target_files_biomass}}.  Each factor
@@ -75,12 +78,31 @@ follow these conventions (other names stop with an error):
 \itemize{
 \item \code{mum}, \code{BHalpha}, \code{BHbeta}, \code{KDENR},
 \code{C} and \code{E}: \code{<type>_<Code>_factor} (e.g.
-\code{"mum_FPS_factor"}), edited in \code{bio.prm}.
+\code{"mum_FPS_factor"}), edited in the biology parameter file.
 \item \code{mQ} and \code{mL}: \code{<Code>_<type>_factor} (e.g.
-\code{"ZS_mQ_factor"}), edited in \code{bio.prm}.
+\code{"ZS_mQ_factor"}), edited in the biology parameter file.
 \item \code{mfc}: \code{mfc_<Code>_factor}, edited as \code{mFC_<Code>}
-in \code{harvest.prm}.
+in the harvest parameter file.
 }
-The edited files are written to \code{bio.prm} and \code{harvest.prm} in
-the working directory, so the original files are not modified.
+The shell script that runs Atlantis is the only file with extension
+\code{.sh} in the working directory, and the biology and harvest parameter
+files are those given to its options \code{-b} and \code{-h} (see
+\code{\link{read_sh_file}}).  The edited parameters are written to these
+same files, so Atlantis runs with them.  The first time \code{run_model()}
+runs in a directory, each original file is copied to
+\code{<file>.original}; the factors are always applied to the values in
+this copy, so they are not applied twice when a directory is reused.
+
+The output list has one element per target in \code{variables}, matched
+by the suffix of the target name:
+\itemize{
+\item \code{<Code>_biomass}: total biomass of the group.
+\item \code{<Name><age>_w}: mean weight at age.
+\item \code{<Name>_catch}: total catch of the group, summed over fleets.
+\item \code{<Name>_Nums}: matrix of abundance with one column per age
+class.
+}
+Only the last \code{dt.timeseries} time steps of each output are returned,
+to match the length of the targets.  If the simulation crashed or stopped
+before \code{tstop}, all outputs are zeros.
 }

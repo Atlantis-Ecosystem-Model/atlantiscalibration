@@ -6,9 +6,10 @@
 #' Writes the parameters to \code{inputs/forcing.csv} and the optimiser
 #' control list to \code{inputs/control.rds}.
 #'
-#' @param calibration.settings Character.  Name of the calibration settings
-#'   CSV file in \code{inputs} (e.g. \code{"calibration_settings.csv"}), as
-#'   written by \code{\link{make_calsettings}}.
+#' @param calibration.settings Character.  Pattern to match calibration settings
+#'   CSV files in \code{inputs} (e.g. \code{"calibration_settings_*.csv"}), as
+#'   written by \code{\link{make_calsettings}}. All matching files are read and
+#'   combined. Alternatively, a single filename for backward compatibility.
 #' @param calibration.parameters Character.  Name of the calibration
 #'   parameters CSV file in \code{inputs} (e.g.
 #'   \code{"calibration-parameters-complete.csv"}), with parameter names in
@@ -34,28 +35,68 @@
 #'
 #' @return Invisibly, a named list with elements \code{setup},
 #'   \code{observed}, \code{forcing}, \code{objfn} (see
-#'   \code{\link{make_objfn}}) and \code{control}.  Also writes
+#'   \code{\link{make_objfn}}) and \code{control}. The \code{control} element
+#'   is a list containing optimiser settings including \code{REPORT}
+#'   (number of iterations before saving), \code{parallel} (logical, enable
+#'   parallel computing), and \code{trace} (verbosity level for global fitness
+#'   and partial fitness output).  Also writes
 #'   \code{inputs/forcing.csv} and \code{inputs/control.rds}.
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #'   calibration <- read_calibration(
-#'     calibration.settings   = "calibration_settings.csv",
+#'     calibration.settings   = "calibration_settings_*.csv",
 #'     calibration.parameters = "calibration-parameters-complete.csv",
 #'     n.Cores      = 32,
-#'     master       = "/home/atlantis/Atlantis_Calibration/configuration/",
-#'     run          = "/home/atlantis/Atlantis_Calibration/RUN",
-#'     restart.file = "/home/atlantis/Atlantis_Calibration/restart_file",
+#'     master       = "model_configuration/",
+#'     run          = "RUN",
+#'     restart.file = "restart_file",
 #'     prefix = "outputFolder/outputSETAS", fg.file = "SETasGroupsDem.csv",
 #'     biom.indx = "outputFolder/outputSETASBiomIndx.txt",
 #'     run.prm = "VMPA_setas_run_fishing_F_Trunk.prm", dt.timeseries = 5)
 #' }
 read_calibration <- function(calibration.settings, calibration.parameters, n.Cores,
                              master, run, restart.file, maxgen = 5,
-                             track.path = here::here("outputs", "keep_track_calibration"), ...){
+                             track.path = here::here("outputs", "keep_track_calibration"),
+                             REPORT = 1, parallel = TRUE, no.trace = 3, ...){
 
-   setup  <- calibrar::calibration_setup(file=here::here("inputs",calibration.settings))
+   # Find and read all calibration settings files matching the pattern
+   calibration_files <- list.files(here::here("inputs"),
+                                   pattern = gsub("\\*", ".*", calibration.settings),
+                                   full.names = FALSE)
+
+   if(length(calibration_files) == 0){
+     stop("No calibration settings files found matching pattern: ", calibration.settings)
+   }
+
+   # Read and combine all calibration settings files
+   # Use flexible column specification since not all files have the same columns
+   col_spec <- readr::cols(
+     variable = readr::col_character(),
+     type = readr::col_character(),
+     calibrate = readr::col_logical(),
+     weight = readr::col_double(),
+     use_data = readr::col_logical(),
+     file = readr::col_character(),
+     varid = readr::col_character(),
+     .default = readr::col_guess()
+   )
+
+   cal_settings_combined <- dplyr::bind_rows(
+     lapply(calibration_files, function(f){
+       readr::read_csv(here::here("inputs", f), col_types = col_spec)
+     })
+   )
+
+   # Write combined settings to temporary file for calibrar
+   temp_cal_file <- tempfile(pattern = "calibration_settings_", fileext = ".csv")
+   readr::write_csv(cal_settings_combined, temp_cal_file)
+
+   setup  <- calibrar::calibration_setup(file=temp_cal_file)
+
+   # Clean up temporary file after setup is created
+   unlink(temp_cal_file)
 
    observed <- calibrar::calibration_data(setup = setup,
                                          path=here::here("inputs"),
@@ -79,7 +120,7 @@ read_calibration <- function(calibration.settings, calibration.parameters, n.Cor
     dir.create(track.path, showWarnings = FALSE, recursive = TRUE)
   }
 
-  objfn <- make_objfn(setup, observed, forcing, track.path = track.path, ...)
+  objfn <- make_objfn(setup, observed, aggregate = FALSE, forcing, track.path = track.path)
 
   control = list()
   control$maxit = maxgen   # maximum number of iterations (former gen.max parameter)
@@ -87,11 +128,11 @@ read_calibration <- function(calibration.settings, calibration.parameters, n.Cor
   control$master = master   # directory that will be copied
   control$run = run   # run directory
   control$restart.file = restart.file   # name of the restart file
-  control$REPORT = 1    # number of iterations to run before saving a restart
-  control$parallel = TRUE
+  control$REPORT = REPORT    # number of iterations to run before saving a restart
+  control$parallel = parallel
   control$nCores = n.Cores
   control$popsize = n.Cores  # population  size (former seed parameter)
-  control$trace = 3 #global fitness and partial fitness
+  control$trace = no.trace #global fitness and partial fitness
 
   saveRDS(control, file = here::here("inputs","control.rds"))
 

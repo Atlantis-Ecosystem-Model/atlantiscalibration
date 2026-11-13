@@ -94,7 +94,7 @@ Writes all the files needed to set up a biomass calibration:
 \itemize{
 \item \code{data/<Code>_biomass.csv}: one target time series per
 calibrated group, with columns \code{Time} and \code{Biomass}.
-\item \code{calibration_settings.csv}: calibration settings for each
+\item \code{calibration_settings_biomass.csv}: calibration settings for each
 biomass target.
 \item \code{calibration-parameters-complete.csv}: parameter factors to
 estimate for each group, as set in \code{parameter.file}, with
@@ -115,7 +115,8 @@ or \code{MAMMAL}, taken from \code{parameter.file} if it has a
 are only created for groups with \code{IsFished == 1} in \code{fg.file}.
 \code{KDENR} factors are only created for groups whose \code{flagrecruit}
 in \code{repro.file} is 12, and \code{BHalpha} and \code{BHbeta} factors
-only for groups whose \code{flagrecruit} is not 12.  Groups missing from
+only for groups whose \code{flagrecruit} is 3 (Beverton-Holt).  Groups
+with other recruitment options, or missing from
 \code{repro.file} get none of the three.
 
 If \code{unfished = TRUE}, targets are created for an unfished scenario
