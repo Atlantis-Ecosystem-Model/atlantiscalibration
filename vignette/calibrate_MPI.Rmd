@@ -179,7 +179,9 @@ atlantiscalibration::make_calsettings(fg.file = fg.file,
                  biom.indx      = biom.indx,
                  init.file      = init.file,
                  catch.file     = catch.file,
+                 run.prm,
                  parameter.file = parameter.file)
+
 ```
 
 `fun.type` can be any likelihood available in calibrar (see

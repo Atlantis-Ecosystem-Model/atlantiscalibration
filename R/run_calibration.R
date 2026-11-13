@@ -36,8 +36,32 @@ run_calibration <- function(calibration){
   on.exit(parallel::stopCluster(cl), add = TRUE)
 
   # Objects required on each worker
+  objfn_env <- environment(objfn)
   parallel::clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed", "setup"),
                           envir = environment())
+
+  # Export variables from objective function's closure
+  # Extract variables from the function's closure and parent environments
+  closure_vars <- list()
+  env <- objfn_env
+
+  while (!identical(env, emptyenv())) {
+    for (var in names(env)) {
+      if (!(var %in% names(closure_vars))) {
+        tryCatch(
+          closure_vars[[var]] <- get(var, envir = env, inherits = FALSE),
+          error = function(e) NULL
+        )
+      }
+    }
+    env <- parent.env(env)
+  }
+
+  # Export the closure variables to the cluster
+  if (length(closure_vars) > 0) {
+    tmp_env <- list2env(closure_vars, parent = emptyenv())
+    parallel::clusterExport(cl, varlist = names(closure_vars), envir = tmp_env)
+  }
 
   # Libraries required on each worker
   for (pkg in c("atlantiscalibration", "calibrar", "stringr")){
