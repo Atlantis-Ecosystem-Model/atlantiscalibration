@@ -52,7 +52,8 @@ make_objfn <- function(setup, observed, aggregate=FALSE, forcing, ...){
     aggregate = aggregate,
     forcing   = forcing,
     names     = row.names(forcing),
-    variables = setup$variable
+    variables = setup$variable,
+    ...
   )
 
  }

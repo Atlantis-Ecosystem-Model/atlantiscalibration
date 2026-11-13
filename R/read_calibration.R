@@ -120,7 +120,7 @@ read_calibration <- function(calibration.settings, calibration.parameters, n.Cor
     dir.create(track.path, showWarnings = FALSE, recursive = TRUE)
   }
 
-  objfn <- make_objfn(setup, observed, aggregate = FALSE, forcing, track.path = track.path)
+  objfn <- make_objfn(setup, observed, aggregate = FALSE, forcing, track.path = track.path, ...)
 
   control = list()
   control$maxit = maxgen   # maximum number of iterations (former gen.max parameter)
