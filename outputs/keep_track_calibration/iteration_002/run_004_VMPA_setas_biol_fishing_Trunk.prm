@@ -2310,11 +2310,11 @@ min_channel_depth 0.001  Minimum depth of estuarine channels
 
 ## Biological parameters
 # Primary producer growth
-mum_PL_T15  0.982580016406784  Maximum growth rate, large phytoplankton d-1 1 - 1.7
-mum_PS_T15  0.135359853731907  Maximum growth rate, small (pico) phytoplankton d-1 1 - 1.24
-mum_MA_T15  2.53938598597045  Maximum growth rate, macroalgae d-1 0.1
+mum_PL_T15  0.953525064572199  Maximum growth rate, large phytoplankton d-1 1 - 1.7
+mum_PS_T15  0.373953084706884  Maximum growth rate, small (pico) phytoplankton d-1 1 - 1.24
+mum_MA_T15  4.14275076855272  Maximum growth rate, macroalgae d-1 0.1
 mum_DF_T15  0.0001  Maximum growth rate, dinoflagellates d-1 0.3 - 0.8
-mum_SG_T15  3.93973589016866  Maximum growth rate, seagrass d-1 -0.07 0.05
+mum_SG_T15  4.01544858098041  Maximum growth rate, seagrass d-1 -0.07 0.05
 mum_MB_T15  0.35  Maximum growth rate, microphytobenthos d-1 0.35
 
 MB_wc   0.01  Scalar for microphytoben. growth in wc (reduced as not on substrate) 0.1
@@ -7551,22 +7551,22 @@ C_WHT            10
 100000.0 80000.0 50000.0 10000.0 3000.0 2000.0 2000.0 1500.0 1500.0 1500.0
 
 # Consumer growth - this is used by Holling type feeding (predcase 0, 1, 2)
-mum_ZG_T15       0.0299280127714613     Growth rate of gelatinous zooplankton            mg N d-1      0.02 - 0.35
-mum_ZL_T15       0.0105363957266323     Growth rate of largezooplankton (0.04)           mg N d-1      0.02 - 0.35
-mum_ZM_T15       0.041724287165003     Growth rate of meso-zooplankton                  mg N d-1       0.3 - 1.4
-mum_ZS_T15       1.29835896058865      Growth rate of microzooplankton                  mg N d-1       0.5 - 2.5
-mum_BFS_T15      0.0471261370917052     Growth rate of shallow filter feeders             mg N d-1          0.01
-mum_BFF_T15      0.0822998985296973     Growth rate of other filter feeders               mg N d-1          0.01
+mum_ZG_T15       0.0149294213174293     Growth rate of gelatinous zooplankton            mg N d-1      0.02 - 0.35
+mum_ZL_T15       0.0100863536040892     Growth rate of largezooplankton (0.04)           mg N d-1      0.02 - 0.35
+mum_ZM_T15       0.0640133023602272     Growth rate of meso-zooplankton                  mg N d-1       0.3 - 1.4
+mum_ZS_T15       0.778595161340471      Growth rate of microzooplankton                  mg N d-1       0.5 - 2.5
+mum_BFS_T15      0.0189522622145416     Growth rate of shallow filter feeders             mg N d-1          0.01
+mum_BFF_T15      0.0968315843337974     Growth rate of other filter feeders               mg N d-1          0.01
 mum_BFD_T15      0.075     Growth rate of deep filter feeders                mg N d-1          0.01
-mum_BD_T15       0.0110183064156008    Growth rate of deposit feeders                   mg N d-1      0.005 - 0.07
-mum_BC_T15       0.0194275811175202   Growth rate of infaunal carnivores (0.005)        mg N d-1      0.005 - 0.06
-mum_BG_T15       0.0170717282092927     Growth rate of benthic grazers                   mg N d-1      0.001 - 0.01
-mum_BMS_T15      0.0473896902368449     Growth rate of shallow macrozoobenthos            mg N d-1      0.0015 - 0.015
+mum_BD_T15       0.0159062132924554    Growth rate of deposit feeders                   mg N d-1      0.005 - 0.07
+mum_BC_T15       0.00890249473678649   Growth rate of infaunal carnivores (0.005)        mg N d-1      0.005 - 0.06
+mum_BG_T15       0.0140705095634053     Growth rate of benthic grazers                   mg N d-1      0.001 - 0.01
+mum_BMS_T15      0.0551116358972705     Growth rate of shallow macrozoobenthos            mg N d-1      0.0015 - 0.015
 mum_BMD_T15      0.05     Growth rate of deep macrozoobenthos               mg N d-1      0.0015 - 0.015
-mum_BML_T15      0.0145817349329551    Growth rate of megazoobenthos                     mg N d-1      0.0015 - 0.015
-mum_BO_T15       0.0396999346488325      Growth rate of meiobenthos                        mg N d-1          0.3
-mum_PB_T15       1.07777165591983      Growth rate of pelagic bacteria                  mg N d-1       1.0 - 2.0
-mum_BB_T15       1.06607825497581      Growth rate of sediment bacteria                 mg N d-1       1.0 - 2.0
+mum_BML_T15      0.0145595321361794    Growth rate of megazoobenthos                     mg N d-1      0.0015 - 0.015
+mum_BO_T15       0.0203935177222839      Growth rate of meiobenthos                        mg N d-1          0.3
+mum_PB_T15       0.891803886149626      Growth rate of pelagic bacteria                  mg N d-1       1.0 - 2.0
+mum_BB_T15       2.32877705005174      Growth rate of sediment bacteria                 mg N d-1       1.0 - 2.0
 mum_CEP_T15   0.0014   Growth rate of cephalopods (from AMS was 0.05 in NSW) mg N d-1 0.02 - 0.35
 mum_jCEP_T15   0.001  Growth rate of juvenile cephalopods (from AMS was 0.05 in NSW) mg N d-1 0.02 - 0.35
 mum_PWN_T15   0.0000001 Growth rate of prawns (from AMS was 0.004 in NSW) mg N d-1 0.0015 - 0.015
@@ -8513,28 +8513,28 @@ KLYS_MA 1.0       Lysis rate of macroalgaes  d-1 (0.01)       0.01
 KLYS_SG 1.0       Lysis rate of seagrass     d-1 (0.01)       0.01
 
 # Linear mortality
-PL_mL        2.14551836378579e-05       Linear mortality rate of lg phytopl, 15 deg C     d-1              0.14
-PS_mL        7.93402391746115e-06       Linear mortality rate of picophytopl, 15 deg C    d-1              0.14
+PL_mL        2.37409510172962e-05       Linear mortality rate of lg phytopl, 15 deg C     d-1              0.14
+PS_mL        1.26435520093487e-05       Linear mortality rate of picophytopl, 15 deg C    d-1              0.14
 MB_mL        0.0       Linear mortality rate of microphytoben, 15 deg C  d-1              0.14
 DF_mL        0.0       Linear mortality rate of dinoflag, 15 deg C       d-1              0.14
-MA_mL        1.17378759671354e-07    Linear mortality rate of macroalgae, 15 deg C     d-1             0.002 - 0.04
+MA_mL        6.14751319862308e-08    Linear mortality rate of macroalgae, 15 deg C     d-1             0.002 - 0.04
 SG_mL        0   Linear mortality rate of seagrass, 15 deg C       d-1              0.001 - 0.01
-ZG_mL        1.19166392638008e-06  Linear mortality rate of gelatin zoopl, 15 deg C  d-1 (0.0008)     0.0 - 0.04
-ZL_mL        0.000199772367655263  Linear mortality rate of large zoopl, 15 deg C    d-1 (0.001)      0.0 - 0.04
-ZM_mL        7.05194430137797e-05  Linear mortality rate of meso-zoopl, 15 deg C     d-1 (0.001)      0.0 - 0.09
-ZS_mL        9.72503508513758e-06  Linear mortality rate of microzoopl, 15 deg C     d-1 (0.0015)     0.0 - 1.0
+ZG_mL        9.52867112817494e-07  Linear mortality rate of gelatin zoopl, 15 deg C  d-1 (0.0008)     0.0 - 0.04
+ZL_mL        0.000239914229632085  Linear mortality rate of large zoopl, 15 deg C    d-1 (0.001)      0.0 - 0.04
+ZM_mL        5.3241379020825e-05  Linear mortality rate of meso-zoopl, 15 deg C     d-1 (0.001)      0.0 - 0.09
+ZS_mL        9.63008405026807e-06  Linear mortality rate of microzoopl, 15 deg C     d-1 (0.0015)     0.0 - 1.0
 BFS_mL       0.0       Linear mortality rate of shallow ff, 15 deg C     d-1 (0.000001)   0.0 -  0.001
 BFF_mL       0.0       Linear mortality rate of other ff, 15 deg C       d-1 (0.000001)   0.0 -  0.001
 BFD_mL       0.0       Linear mortality rate of deep filt feed, 15 deg C d-1 (0.000001)   0.0 -  0.001
-BD_mL        0.000968784660777043  Linear mortality rate of deposit feeder, 15 deg C d-1 (0.0005)     0.0 -  0.001
-BC_mL        4.32308581677025e-05   Linear mortality rate of inf carniv, 15 deg C     d-1 (0.0001)     0.0 - 0.003
-BG_mL        0.00019172732653464    Linear mortality rate of herbiv grazer, 15 deg C  d-1 (0.0005)     0.0 - 0.001
-BMS_mL       7.87127428552599e-05    Linear mort rate of shallow macrozooben, 15 deg C d-1 (0.00037)    0.0 - 0.002
-BML_mL       7.22033843325159e-05    Linear mortality rate of megazoobenthos, 15 deg C d-1 (0.00037)    0.0 - 0.002
+BD_mL        0.000949643649135503  Linear mortality rate of deposit feeder, 15 deg C d-1 (0.0005)     0.0 -  0.001
+BC_mL        7.47979911993722e-05   Linear mortality rate of inf carniv, 15 deg C     d-1 (0.0001)     0.0 - 0.003
+BG_mL        0.000101312656643353    Linear mortality rate of herbiv grazer, 15 deg C  d-1 (0.0005)     0.0 - 0.001
+BMS_mL       6.75942705443152e-05    Linear mort rate of shallow macrozooben, 15 deg C d-1 (0.00037)    0.0 - 0.002
+BML_mL       5.52686482377144e-05    Linear mortality rate of megazoobenthos, 15 deg C d-1 (0.00037)    0.0 - 0.002
 BMD_mL       0.000002    Linear mort. rate of deep macrozooben.,  15 deg C d-1 (0.0001)     0.0 - 0.002
-BO_mL        1.13655890566953e-08 Linear mortality rate of meiobenthos, 15 deg C    d-1 (0.0082)     0.0 - 0.01
-PB_mL        1.24647734306407e-05   Linear mortality rate of pelagic bact, 15 deg C   d-1              0.0 - 0.1
-BB_mL        8.95591012443962e-06   Linear mortality rate of sediment bact, 15 deg C  d-1 (0.0001)     0.0 - 0.1
+BO_mL        7.56330554076658e-09 Linear mortality rate of meiobenthos, 15 deg C    d-1 (0.0082)     0.0 - 0.01
+PB_mL        1.2961396527306e-05   Linear mortality rate of pelagic bact, 15 deg C   d-1              0.0 - 0.1
+BB_mL        9.93356269089756e-06   Linear mortality rate of sediment bact, 15 deg C  d-1 (0.0001)     0.0 - 0.1
 
 
 FPL_mL 2
@@ -8618,18 +8618,18 @@ PWN_mL 2
 
 # Quadratic mortality
 # Invertebrates
-ZG_mQ        5.24145299946728e-06    Quad. mortality rate of gelatin. zoopl, 15 deg C  d-1 (0.00001)    0.0 - 0.01
-ZL_mQ        5.74977993152776e-07  Quad. mortality rate of large zoopl, 15 deg C     d-1              0.0 - 0.01
+ZG_mQ        7.07176349420486e-06    Quad. mortality rate of gelatin. zoopl, 15 deg C  d-1 (0.00001)    0.0 - 0.01
+ZL_mQ        8.88779464709874e-07  Quad. mortality rate of large zoopl, 15 deg C     d-1              0.0 - 0.01
 ZM_mQ        0.0       Quad. mortality rate of meso-zoopl, 15 deg C      d-1              0.0 - 0.02
 ZS_mQ        0.0       Quad. mortality rate of microzoopl, 15 deg C      d-1              0.0 - 0.2
-BC_mQ        1.20829279637916e-07  Quad. mortality rate of inf carniv, 15 deg C      d-1              0.0 - 0.00001
-BD_mQ        3.47794829707076e-07   Quad. mortality rate of deposit feeder, 15 deg C  d-1              0.0
+BC_mQ        8.63312099095784e-08  Quad. mortality rate of inf carniv, 15 deg C      d-1              0.0 - 0.00001
+BD_mQ        2.94726538576052e-07   Quad. mortality rate of deposit feeder, 15 deg C  d-1              0.0
 BO_mQ        0.0       Quad. mortality rate of meiobenthos, 15 deg C     d-1              0.0
-BFS_mQ       1.18875095080482e-07    Quad. mortality rate of shallow ff, 15 deg C      d-1              0.0 - 0.000002
-BFF_mQ       7.85937207472832e-08    Quad. mortality rate of other ff, 15 deg C        d-1              0.0 - 0.000002
+BFS_mQ       1.02739846642579e-07    Quad. mortality rate of shallow ff, 15 deg C      d-1              0.0 - 0.000002
+BFF_mQ       7.63807901043874e-08    Quad. mortality rate of other ff, 15 deg C        d-1              0.0 - 0.000002
 BFD_mQ       1.0e-6    Quad. mortality rate of deep filt feed, 15 deg C  d-1              0.0 - 0.000002
-BMS_mQ       6.87338930500589e-08  Quad. mort. rate of shallow macrozooben, 15 deg C d-1              0.0 - 0.000002
-BML_mQ       8.03767508014071e-08  Quad. mortality rate of megazoobenthos, 15 deg C  d-1              0.0 - 0.000002
+BMS_mQ       5.22467568287281e-08  Quad. mort. rate of shallow macrozooben, 15 deg C d-1              0.0 - 0.000002
+BML_mQ       1.3413870164785e-07  Quad. mortality rate of megazoobenthos, 15 deg C  d-1              0.0 - 0.000002
 BMD_mQ       0.0000001 Quad. mort. rate of deep macrozooben., 15 deg C   d-1              0.0 - 0.000002
 BG_mQ        0.0       Quad. mortality rate of benthic grazer, 15 deg C  d-1              0.0
 

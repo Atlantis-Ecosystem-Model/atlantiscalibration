@@ -31,54 +31,39 @@ run_calibration <- function(calibration){
   observed <- calibration$observed
   setup    <- calibration$setup
 
-  cl <- parallel::makeCluster(control$nCores)
-  doSNOW::registerDoSNOW(cl)
-  on.exit(parallel::stopCluster(cl), add = TRUE)
-
-  # Objects required on each worker
-  objfn_env <- environment(objfn)
-  parallel::clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed", "setup"),
-                          envir = environment())
-
-  # Export variables from objective function's closure
-  # Extract variables from the function's closure and parent environments
-  closure_vars <- list()
-  env <- objfn_env
-
-  while (!identical(env, emptyenv())) {
-    for (var in names(env)) {
-      if (!(var %in% names(closure_vars))) {
-        tryCatch(
-          closure_vars[[var]] <- get(var, envir = env, inherits = FALSE),
-          error = function(e) NULL
-        )
-      }
-    }
-    env <- parent.env(env)
+  # creates a user defined likelihood function
+  minmaxt = function(obs, sim) {
+    output = -1e+6*sum(log(pmin((sim+1)/(obs[, 1]+1), 1)), na.rm=TRUE) +
+      1e+6*sum(log(pmax((sim+1)/(obs[, 2]+1), 1)), na.rm=TRUE)
+    return(output)
   }
 
-  # Export the closure variables to the cluster
-  if (length(closure_vars) > 0) {
-    tmp_env <- list2env(closure_vars, parent = emptyenv())
-    parallel::clusterExport(cl, varlist = names(closure_vars), envir = tmp_env)
-  }
+  # call the RMPI/Snow make cluster (note here that there are no arguments!)
+  NumberOfCluster <- control$nCores
+  cl <-  parallel::makeCluster(NumberOfCluster)
 
-  # Libraries required on each worker
-  for (pkg in c("atlantiscalibration", "calibrar", "stringr")){
-    parallel::clusterCall(cl, library, pkg, character.only = TRUE)
-  }
+  # call the registerDoSNOW function instead of the registerDoParallel
+  doSNOW::registerDoSNOW (cl)
+
+  # send the variables and loaded libraries defined in the above to the nodes
+  parallel::clusterExport(cl, c("control","objfn", "forcing", "observed", "setup", "minmaxt"), envir = environment())
+  parallel::clusterEvalQ(cl, library("atlantiscalibration"))
+  parallel::clusterEvalQ(cl, library("calibrar"))
+  parallel::clusterEvalQ(cl, library("stringr"))
+
+  # run the calibration
+
+  lbfgsb1 = calibrar::calibrate(par=forcing['paropt'], fn=objfn,
+                                method='AHR-ES',
+                                lower=forcing['parmin'],
+                                upper=forcing['parmax'],
+                                phases=forcing['parphase'],
+                                control=control, parallel = TRUE)
+
+  # stop the cluster
+  parallel::stopCluster(cl)
 
 
-  lbfgsb1 <- calibrar::calibrate(
-    par     = forcing[["paropt"]],
-    fn      = objfn,
-    method  = "AHR-ES",
-    lower   = forcing[["parmin"]],
-    upper   = forcing[["parmax"]],
-    phases  = forcing[["parphase"]],
-    control = control,
-    parallel = TRUE
-  )
+  return(lbfgsb1)
 
-  lbfgsb1
 }

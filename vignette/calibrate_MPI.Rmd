@@ -241,17 +241,16 @@ calibration <- atlantiscalibration::read_calibration(
   maxgen       = 3,   # maximum number of generations; increase for production
   master       = here::here("inputs","model_configuration"),
   run          = here::here("RUN"),
-  restart.file = here::here("inputs","restart_file"),
+  restart.file = normalizePath(here::here("inputs","restart_file")),
   track.path   = here::here("outputs", "keep_track_calibration"), # parameter files of each run
   REPORT = 1,    # number of iterations to run before saving a restart
   parallel = TRUE, #run as parallel
-  no.trace = 3, #global fitness and partial fitness
-  # arguments of run_model(), relative to the master directory
-  prefix        = "outputFolder/outputSETAS",            # -o outputSETAS.nc, -d outputFolder
-  fg.file       = fg.file,
-  biom.indx     = "outputFolder/outputSETASBiomIndx.txt", # written by each run
-  run.prm       = run.prm,
-  dt.timeseries = dt.timeseries
+  no.trace = 3,
+  prefix = "outputFolder/outputSETAS",
+  fg.file = "SETasGroupsDem.csv",
+  biom.indx = "outputSETASBiomIndx.txt",
+  run.prm = "VMPA_setas_run_fishing_F_Trunk.prm",
+  dt.timeseries = 365
 )
 ```
 
@@ -273,9 +272,14 @@ Hierarchical Recombination Evolution Strategy) optimiser, which is well suited
 to the noisy, expensive fitness evaluations of ecosystem models.  Parameters
 are estimated in the phases given by `parphase`.
 
-```{r run-calibration}
+```{r run-calibration, include=FALSE}
 
-results <- atlantiscalibration::run_calibration(calibration)
+dir.create(here::here("RUN"))
+results <- tryCatch(atlantiscalibration::run_calibration(calibration), error = function(e) {
+  message("Error in run_calibration: ", e$message)
+  return(NULL)
+}
+)
 ```
 
 **Note:** For parallel calibration to work, the `atlantiscalibration` package must be
@@ -291,10 +295,7 @@ The results are saved by calibrar in `<restart.file>.results`.
 fitness of each target for the best solution of each generation:
 
 ```{r compare-outputs}
-comparison <- compare_outputs(
-  results_file = "/home/atlantis/Atlantis_Calibration/restart_file.results",
-  forcing      = calibration$forcing
-)
+comparison <- atlantiscalibration::compare_outputs(forcing = calibration$forcing)
 
 comparison$param_comparison  # factor_new: factor applied to the original parameter value
 comparison$plot_changes
@@ -306,7 +307,7 @@ and the parameters (`results$trace$par`) of the best solution of each
 generation:
 
 ```{r trace}
-results <- readRDS("/home/atlantis/Atlantis_Calibration/restart_file.results")
+results <- readRDS(here::here("inputs","restart_file.results"))
 
 matplot(results$trace$par, type = "l", lty = 1,
         xlab = "Generation", ylab = "Parameter (log factor)")
@@ -315,6 +316,18 @@ matplot(results$trace$par, type = "l", lty = 1,
 The calibrated parameter values are the original values multiplied by
 `exp(results$par)`.  To create the calibrated parameter files, run
 `run_model()` once with `results$par` in a copy of the model configuration.
+
+```{r}
+atlantiscalibration::plot_calibration_targets(
+    run_dir = here::here("RUN"),
+    data_dir = here::here("inputs", "data"),
+    settings_dir = here::here("inputs"),
+    output_dir = here::here("outputs"),
+    parameter_file = here::here("inputs", "parameter_table.csv"),
+    output_prefix = "outputSETAS"
+    )
+```
+
 
 ---
 

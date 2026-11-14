@@ -46,11 +46,10 @@
 #' }
 make_objfn <- function(setup, observed, aggregate=FALSE, forcing, ...){
   calibrar::calibration_objFn(
-    model     = run_model,
+    model     = atlantiscalibration::run_model,
     setup     = setup,
     observed  = observed,
     aggregate = aggregate,
-    forcing   = forcing,
     names     = row.names(forcing),
     variables = setup$variable,
     ...

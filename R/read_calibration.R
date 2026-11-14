@@ -57,9 +57,9 @@
 #'     run.prm = "VMPA_setas_run_fishing_F_Trunk.prm", dt.timeseries = 5)
 #' }
 read_calibration <- function(calibration.settings, calibration.parameters, n.Cores,
-                             master, run, restart.file, maxgen = 5,
-                             track.path = here::here("outputs", "keep_track_calibration"),
+                             maxgen, master, run, restart.file, track.path = here::here("outputs", "keep_track_calibration"),
                              REPORT = 1, parallel = TRUE, no.trace = 3, ...){
+
 
    # Find and read all calibration settings files matching the pattern
    calibration_files <- list.files(here::here("inputs"),
@@ -120,7 +120,8 @@ read_calibration <- function(calibration.settings, calibration.parameters, n.Cor
     dir.create(track.path, showWarnings = FALSE, recursive = TRUE)
   }
 
-  objfn <- make_objfn(setup, observed, aggregate = FALSE, forcing, track.path = track.path, ...)
+  objfn <- make_objfn(setup, observed, aggregate = FALSE, forcing, ...)
+
 
   control = list()
   control$maxit = maxgen   # maximum number of iterations (former gen.max parameter)

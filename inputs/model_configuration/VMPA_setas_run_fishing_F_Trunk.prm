@@ -34,13 +34,13 @@ habitat_check 0
 move_check    67       # ID number of group where tracking movements
 fishmove      1        # Set to 0 to turn vertebrate movement off for debugging purposes
 debug         0        # 0=debuging off, 1=debug fishing, 2=debug discards, 3=debug histfishing,
-                       # 4=debug assessments, 5=debug mpas, 6=debug effort, 7=debug econ, 8=debug aging, 
-                       # 9=debug_spawning, 10=debug migration, 11=debug movement, 12=debug stocks, 
+                       # 4=debug assessments, 5=debug mpas, 6=debug effort, 7=debug econ, 8=debug aging,
+                       # 9=debug_spawning, 10=debug migration, 11=debug movement, 12=debug stocks,
                        # 13=debug biomass calcs, 14=debug feeding, 15=debug everything
 
 title      SE Tasmania model with constant forced fishing and base level fishing pressure on FMM increased 2000 fold
 dt         	12 hour     # 12 hour time step
-tstop	365
+tstop       365 day     # Stop time after the given period 15000 5000
 toutstart  	0 day       # Output start time
 toutinc    	0.5 day     # Write output with this periodicity
 toutfinc   	1 day     # Write fisheries output with this periodicity
@@ -56,27 +56,27 @@ flag_age_output 1
 flag_mig_in_bioindx 1
 
 # Parameters defining the numbers of certain types of groups (needed to  parameter arrays in the
-# initialisation section of the model, best left untouched for now) 
-K_num_tot_sp    62     # total number of biological groups in the model - must match the number of groups defined in your functional group definition file. 
+# initialisation section of the model, best left untouched for now)
+K_num_tot_sp    62     # total number of biological groups in the model - must match the number of groups defined in your functional group definition file.
 K_num_stocks_per_sp 4  # maximum number of stocks per group in the model
 K_num_bed_types  3     # maximum number of seabed types (currently only reef, soft and flat) 3
 K_num_cover_types 10   # maximum number of habitat types. Should be equal to K_num_bed_types + number of cover groups in your function def input file + 1( canyons ).
 K_num_detritus   3     # Total number of detritus groups in the model (labile and refractory and carrion)
 
-# Parameters defining the numbers of certain types of fisheries 
+# Parameters defining the numbers of certain types of fisheries
 # (needed to  parameter arrays in the initialisation section of the model,
-# best left untouched for now) 
+# best left untouched for now)
 K_num_fisheries   33   # Maximum number of fisheries - must match the number of fisheries defined in your fisheries definition input file.
-K_num_ports       17   # Maxiumum number of ports in the model area 
+K_num_ports       17   # Maxiumum number of ports in the model area
 K_max_num_zoning  1    # Maximum number of spatial zonings used in the model
 K_num_reg         2    # Maximum number of management zonings used in the model
-K_num_markets     2    # Maxiumum number of markets in the model area 
+K_num_markets     2    # Maxiumum number of markets in the model area
 K_num_catchqueue  7    # Length (in days) of list of catches used in running average to give recent CPUE for effort model 8
 K_num_basket      2    # Maxiumum number of species in basket quota
 
 # Location parameters
 flaghemisphere    0    # Flag for hemisphere model is in (0 = southern; 1 = northern)
-flagIsEstuary     0    # Flag to indicate if the model is estuary. If true a sediment tracer is required in the initial conditions input file. 
+flagIsEstuary     0    # Flag to indicate if the model is estuary. If true a sediment tracer is required in the initial conditions input file.
 flagIsPolar       0    # Flag indicating polar - so there will be 24 hrs of daylight/night seasonally
 
 # Parameters for rescalingin inital vertebrate densities - only for use in emergencies,
