@@ -116,10 +116,7 @@ create_target_files_waa <- function(init.file,
       varid = "Weight"
     )
 
-    ##################
-    # Create code for runModel function
-    ##################
-    # Add a blank line after the last cohort of each group
+     # Add a blank line after the last cohort of each group
     last.cohort <- c(group[-1] != group[-length(group)], TRUE)
 
     R_code <- paste0(variable, ' = unname(unlist(atlantis.meanSizeByAge["', cohort, '"])),',

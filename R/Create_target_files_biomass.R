@@ -229,9 +229,6 @@ create_target_files_biomass <- function(biom.indx = NULL,
 
   utils::write.csv(settings, file.path(output.path, paste0("calibration_settings", suffix, ".csv")), row.names = FALSE)
 
-  ##################
-  # Create code for runModel function
-  ##################
   R_code <- paste0(variable, ' = unname(unlist(atlantis.biomass["', Bio.groups$Name, '"])), ')
   writeLines(R_code, con = file.path(output.path, paste0("biomass", suffix, ".txt")))
 

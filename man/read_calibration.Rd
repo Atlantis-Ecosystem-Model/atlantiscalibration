@@ -8,10 +8,10 @@ read_calibration(
   calibration.settings,
   calibration.parameters,
   n.Cores,
+  maxgen,
   master,
   run,
   restart.file,
-  maxgen = 5,
   track.path = here::here("outputs", "keep_track_calibration"),
   REPORT = 1,
   parallel = TRUE,
@@ -33,6 +33,9 @@ the first column.}
 \item{n.Cores}{Integer.  Number of parallel workers, also used as the
 population size (number of model runs per generation).}
 
+\item{maxgen}{Integer.  Maximum number of generations (iterations) of the
+optimiser.  Default: \code{5}.}
+
 \item{master}{Character.  Directory with all the files needed to run
 Atlantis (model files and the \code{.sh} shell script).  It is copied to a run
 directory for each model run.}
@@ -41,9 +44,6 @@ directory for each model run.}
 
 \item{restart.file}{Character.  Name of the restart file, used to restart
 an interrupted calibration and to save the results.}
-
-\item{maxgen}{Integer.  Maximum number of generations (iterations) of the
-optimiser.  Default: \code{5}.}
 
 \item{track.path}{Character.  Folder where the parameter files used in
 each run of each iteration are saved, as

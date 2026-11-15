@@ -6,7 +6,10 @@
 #'
 #' @param results_file Character.  Path to the RDS file written by
 #'   \code{\link[calibrar]{calibrate}} (e.g. via its \code{restart} option).
-#'   Default: \code{"restart_file.results"}.
+#'   If \code{NULL}, searches for the most recent restart file in the inputs
+#'   directory. Default: \code{NULL}.
+#' @param restart_dir Character.  Directory where restart files are saved.
+#'   Used when \code{results_file = NULL}. Default: \code{here::here("inputs")}.
 #' @param forcing Data frame of parameter metadata with row names used as
 #'   parameter identifiers.  Must contain at minimum the columns
 #'   \code{paropt} (initial values), \code{parmin}, \code{parmax}, and
@@ -25,13 +28,20 @@
 #' @examples
 #' \dontrun{
 #'   out <- compare_outputs(
-#'     results_file = "restart_file.results",
-#'     forcing      = forcing
+#'     forcing = forcing
 #'   )
 #'   print(out$param_comparison)
 #'   print(out$plot_changes)
 #' }
-compare_outputs <- function(results_file = "restart_file.results", forcing) {
+compare_outputs <- function(results_file = NULL, restart_dir = here::here("inputs"), forcing) {
+
+  if (is.null(results_file)) {
+    results_files <- list.files(restart_dir, pattern = "\\.results$", full.names = TRUE)
+    if (length(results_files) == 0) {
+      stop("No .results files found in ", restart_dir)
+    }
+    results_file <- results_files[which.max(file.info(results_files)$mtime)]
+  }
 
   results <- readRDS(results_file)
 

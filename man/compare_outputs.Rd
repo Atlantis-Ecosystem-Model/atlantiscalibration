@@ -4,12 +4,20 @@
 \alias{compare_outputs}
 \title{Compare initial and optimised Atlantis calibration outputs}
 \usage{
-compare_outputs(results_file = "restart_file.results", forcing)
+compare_outputs(
+  results_file = NULL,
+  restart_dir = here::here("inputs"),
+  forcing
+)
 }
 \arguments{
 \item{results_file}{Character.  Path to the RDS file written by
 \code{\link[calibrar]{calibrate}} (e.g. via its \code{restart} option).
-Default: \code{"restart_file.results"}.}
+If \code{NULL}, searches for the most recent restart file in the inputs
+directory. Default: \code{NULL}.}
+
+\item{restart_dir}{Character.  Directory where restart files are saved.
+Used when \code{results_file = NULL}. Default: \code{here::here("inputs")}.}
 
 \item{forcing}{Data frame of parameter metadata with row names used as
 parameter identifiers.  Must contain at minimum the columns
@@ -34,8 +42,7 @@ convergence plot showing the per-target fitness over iterations.
 \examples{
 \dontrun{
   out <- compare_outputs(
-    results_file = "restart_file.results",
-    forcing      = forcing
+    forcing = forcing
   )
   print(out$param_comparison)
   print(out$plot_changes)

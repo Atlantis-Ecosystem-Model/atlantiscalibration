@@ -119,9 +119,6 @@ create_target_files_catch <- function(catch.file, fg.file,
   utils::write.csv(settings, file.path(output.path, "calibration_settings_catch.csv"),
                    row.names = FALSE)
 
-  ##################
-  # Create code for runModel function
-  ##################
   R_code <- paste0(variable, ' = unname(unlist(atlantis.catch["', species, '"])), ')
   writeLines(R_code, con = file.path(output.path, "catch.txt"))
 

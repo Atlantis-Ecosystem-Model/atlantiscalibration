@@ -114,10 +114,6 @@ create_target_files_abund <- function(init.file,
       varid = NA,
       col_skip = 1  # skip the Time column, keep all age classes
     )
-
-    ##################
-    # Create code for runModel function
-    ##################
     R_code <- paste0(variable, ' = unname(unlist(atlantis.abundance["', species, '"])), ')
     writeLines(R_code, con = file.path(output.path, "abund.txt"))
 

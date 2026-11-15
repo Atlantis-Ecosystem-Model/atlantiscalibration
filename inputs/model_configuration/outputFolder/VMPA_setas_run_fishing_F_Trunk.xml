@@ -11,7 +11,7 @@
   <AttributeSubGroup AttributeGroupName="ScenarioOptions" AttributeDescription="Run settings">
     <Attribute AttributeName="title" AttributeDescription="ScenarioName" AttributeValue="SE" AttributeType="String" AttributeRecommendedValue=""/>
     <Attribute AttributeName="dt" AttributeDescription="Model Time Step in hours" AttributeUnits="Hours" AttributeValue="12 hour" AttributeType="Integer" AttributeRecommendedValue="12"/>
-    <Attribute AttributeName="tstop" AttributeDescription="Stop model after the given number of days" AttributeValue="30 day" AttributeType="Integer" AttributeRecommendedValue="0"/>
+    <Attribute AttributeName="tstop" AttributeDescription="Stop model after the given number of days" AttributeValue="365 day" AttributeType="Integer" AttributeRecommendedValue="0"/>
     <Attribute AttributeName="flagIsEstuary" AttributeDescription="Flag indicating model is an estuary." AttributeValue="0" AttributeType="Boolean" AttributeRecommendedValue="0"/>
     <Attribute AttributeName="flagAllowLand" AttributeDescription="Flag indicating model can include land." AttributeValue="0" AttributeType="Boolean" AttributeRecommendedValue="0"/>
     <Attribute AttributeName="flagIsPolar" AttributeDescription="Flag indicating model is polar" AttributeValue="0" AttributeType="Boolean" AttributeRecommendedValue="0"/>

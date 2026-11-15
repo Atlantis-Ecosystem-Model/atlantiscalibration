@@ -31,30 +31,39 @@ run_calibration <- function(calibration){
   observed <- calibration$observed
   setup    <- calibration$setup
 
-  cl <- parallel::makeCluster(control$nCores)
-  doSNOW::registerDoSNOW(cl)
-  on.exit(parallel::stopCluster(cl), add = TRUE)
-
-  # Objects required on each worker
-  parallel::clusterExport(cl, varlist = c("control", "objfn", "forcing", "observed", "setup"),
-                          envir = environment())
-
-  # Libraries required on each worker
-  for (pkg in c("atlantiscalibration", "calibrar", "stringr")){
-    parallel::clusterCall(cl, library, pkg, character.only = TRUE)
+  # creates a user defined likelihood function
+  minmaxt = function(obs, sim) {
+    output = -1e+6*sum(log(pmin((sim+1)/(obs[, 1]+1), 1)), na.rm=TRUE) +
+      1e+6*sum(log(pmax((sim+1)/(obs[, 2]+1), 1)), na.rm=TRUE)
+    return(output)
   }
 
+  # call the RMPI/Snow make cluster (note here that there are no arguments!)
+  NumberOfCluster <- control$nCores
+  cl <-  parallel::makeCluster(NumberOfCluster)
 
-  lbfgsb1 <- calibrar::calibrate(
-    par     = forcing[["paropt"]],
-    fn      = objfn,
-    method  = "AHR-ES",
-    lower   = forcing[["parmin"]],
-    upper   = forcing[["parmax"]],
-    phases  = forcing[["parphase"]],
-    control = control,
-    parallel = TRUE
-  )
+  # call the registerDoSNOW function instead of the registerDoParallel
+  doSNOW::registerDoSNOW (cl)
 
-  lbfgsb1
+  # send the variables and loaded libraries defined in the above to the nodes
+  parallel::clusterExport(cl, c("control","objfn", "forcing", "observed", "setup", "minmaxt"), envir = environment())
+  parallel::clusterEvalQ(cl, library("atlantiscalibration"))
+  parallel::clusterEvalQ(cl, library("calibrar"))
+  parallel::clusterEvalQ(cl, library("stringr"))
+
+  # run the calibration
+
+  lbfgsb1 = calibrar::calibrate(par=forcing['paropt'], fn=objfn,
+                                method='AHR-ES',
+                                lower=forcing['parmin'],
+                                upper=forcing['parmax'],
+                                phases=forcing['parphase'],
+                                control=control, parallel = TRUE)
+
+  # stop the cluster
+  parallel::stopCluster(cl)
+
+
+  return(lbfgsb1)
+
 }

@@ -2,3 +2,198 @@ Git release version: 3.6722-36-g3df3b5a
 # Log file for run of Atlantis - only ecological errors and important events are recorded here #
 # Key to indices used in Atlantis, which may appear in logged errors here:
 atlantisMerged -i INIT_VMPA_Jan2015.nc 0 -o outputSETAS.nc -r VMPA_setas_run_fishing_F_Trunk.prm -f VMPA_setas_force_fish_Trunk.prm -p VMPA_setas_physics.prm -b VMPA_setas_biol_fishing_Trunk.prm -m SETas_Migrations.csv -h VMPA_setas_harvest_F_Trunk.prm -s SETasGroupsDem.csv -q SETasFisheries.csv -d outputFolder
+Loaded FPL with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FPO with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FPS with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVD with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVV with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVS with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVB with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVT with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FVO with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FMM with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FMN with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FBP with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDD with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDE with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDS with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDM with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDP with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDB with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDC with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDO with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded FDF with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SHB with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SHD with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SHC with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SHP with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SHR with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SSK with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SB with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded SP with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded PIN with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded REP with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded WHB with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded WHS with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded WHT with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded WDG with numCohorts: 10, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded CEP with numCohorts: 2, numGeneTypes: 1, numStages: 2, numSpawns: 1
+Loaded BFS with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BFF with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BFD with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BG with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BMD with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BML with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BMS with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded PWN with numCohorts: 2, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded ZL with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BD with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded MA with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded MB with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded SG with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BC with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded ZG with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded PL with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded DF with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded PS with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded ZM with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded ZS with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded PB with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BB with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded BO with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded DL with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded DR with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+Loaded DC with numCohorts: 1, numGeneTypes: 1, numStages: 1, numSpawns: 1
+WARNING - Sum of dz (2.000000e+03) in box 4 is greater than botz (4.255000e+03) for that box in bgm file. Difference = -2.255000e+03 - correct and retry
+WARNING - Sum of dz (2.000000e+03) in box 5 is greater than botz (3.405000e+03) for that box in bgm file. Difference = -1.405000e+03 - correct and retry
+WARNING - Sum of dz (2.000000e+03) in box 7 is greater than botz (4.531000e+03) for that box in bgm file. Difference = -2.531000e+03 - correct and retry
+WARNING - Sum of dz (2.000000e+03) in box 8 is greater than botz (4.650000e+03) for that box in bgm file. Difference = -2.650000e+03 - correct and retry
+WARNING - Sum of dz (2.000000e+03) in box 9 is greater than botz (4.551000e+03) for that box in bgm file. Difference = -2.551000e+03 - correct and retry
+WARNING - Sum of dz (1.300000e+03) in box 10 is greater than botz (3.702000e+03) for that box in bgm file. Difference = -2.402000e+03 - correct and retry
+WARNING - The numLayers value for box 10 is 6 but the number of layers calculated based on nominal_dz is 1 - check and retry.
+Time: 0.000000e+00, opening hydrofile /home/atlantis/atlantiscalibration/inputs/forcing/forcisets/SETAS_VMPAhydroA.nc
+totboxden created with dimension bm->K_num_max_cohort: 10 bm->K_num_max_genetypes: 1 (final dim 10)
+FPS is smallest vertebrate (at 3.066600e-02 kg) - SN: 7.400000e+01, RN: 1.950000e+02
+WHB is largest vertebrate (at 3.439380e+04 kg) - SN: 8.270000e+07, RN: 2.190000e+08
+Time: 0.000000e+00, species FPS virgin biomass is 1340.044062 t
+Time: 0.000000e+00, species FVS virgin biomass is 488760.345583 t
+Time: 0.000000e+00, species FVT virgin biomass is 5897.576721 t
+Time: 0.000000e+00, species FDS virgin biomass is 48124.820868 t
+Time: 0.000000e+00, species SHD virgin biomass is 152550.902354 t
+Time: 0.000000e+00, species SB virgin biomass is 78.607864 t
+Time: 0.000000e+00, species PIN virgin biomass is 536.153360 t
+Time: 0.000000e+00, species WHB virgin biomass is 2728.246574 t
+Time: 0.000000e+00, species WHT virgin biomass is 756.185723 t
+Time: 0.000000e+00, species CEP virgin biomass is 74930.346571 t
+Time: 0.000000e+00, species BFS virgin biomass is 1223.621984 t
+Time: 0.000000e+00, species BFF virgin biomass is 12236.219837 t
+Time: 0.000000e+00, species BG virgin biomass is 2447.243967 t
+Time: 0.000000e+00, species BML virgin biomass is 2447.243967 t
+Time: 0.000000e+00, species BMS virgin biomass is 19577.951740 t
+Time: 0.000000e+00, species ZL virgin biomass is 904516.055716 t
+Time: 0.000000e+00, species BD virgin biomass is 103894.965267 t
+Time: 0.000000e+00, species MA virgin biomass is 244724.396744 t
+Time: 0.000000e+00, species SG virgin biomass is 2447.243967 t
+Time: 0.000000e+00, species BC virgin biomass is 1246739.583208 t
+Time: 0.000000e+00, species ZG virgin biomass is 3746517.328532 t
+Time: 0.000000e+00, species PL virgin biomass is 3040732.093783 t
+Time: 0.000000e+00, species PS virgin biomass is 56567449.515743 t
+Time: 0.000000e+00, species ZM virgin biomass is 655168.139075 t
+Time: 0.000000e+00, species ZS virgin biomass is 37485952.278373 t
+Time: 0.000000e+00, species PB virgin biomass is 374651.732853 t
+Time: 0.000000e+00, species BB virgin biomass is 2077899.305346 t
+Time: 0.000000e+00, species BO virgin biomass is 2077899.305346 t
+Time: 0.000000e+00, species DL virgin biomass is 10389496.526730 t
+Time: 0.000000e+00, species DR virgin biomass is 41557986.106920 t
+Time: 0.000000e+00, species DC virgin biomass is 0.000000 t
+Time: 0.000000e+00, species DIN virgin biomass is 2122277142.529551 t
+Ecology_Init: SB has migrants outside model domain at model start so can't perform artifical reseeding preventative check.
+Ecology_Init: This is probably not an issue, but if you are having troubles with SB check recruit_hdistrib.
+Ecology_Init: WHB has migrants outside model domain at model start so can't perform artifical reseeding preventative check.
+Ecology_Init: This is probably not an issue, but if you are having troubles with WHB check recruit_hdistrib.
+Time: 0.000000e+00, FPL catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FPO catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FPS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVV catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVT catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FVO catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FMM catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FMN catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FBP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDE catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDM catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDC catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDO catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, FDF catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SHB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SHD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SHC catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SHP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SHR catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SSK catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, PIN catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, REP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, WHB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, WHS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, WHT catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, WDG catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, CEP catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BFS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BFF catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BFD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BG catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BMD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BML catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BMS catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, PWN catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, ZL catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BD catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, MA catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, MB catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, SG catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, BC catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00, ZG catch 0.000000e+00 t discards 0.000000e+00 t
+Time: 0.000000e+00 year 0
+Time: 0.000000e+00 FDS, Braw (total stock biomass) before Assess_Add_Error() - 4.812482e+04
+Time: 0.000000e+00 doing FDS with tier 2
+The HCR refernce poitns are as follows:
+BrefA: 7.751981e+05, BrefB: 6.459984e+05, Blim: 3.229992e+05, FrefLim: 0.000000e+00, FrefA: 0.000000e+00, FrefH: 1.000000e+00
+Time: 0.000000e+00 FDS has Fcurr 0.000000e+00
+Time: 0.000000e+00 FDS F_rescale: 0.000000e+00, FTARG: 0.000000e+00, Fcurr: 0.000000e+00)
+Time: 0.000000e+00 FDS mFC_scale: 0.000000e+00, F_rescale: 0.000000e+00)
+Time: 0.000000e+00 SHD, Braw (total stock biomass) before Assess_Add_Error() - 1.525509e+05
+Time: 0.000000e+00 doing SHD with tier 1
+The HCR refernce poitns are as follows:
+BrefA: 1.154787e+05, BrefB: 9.623228e+04, Blim: 4.811614e+04, FrefLim: 0.000000e+00, FrefA: 0.000000e+00, FrefH: 1.000000e+00
+Time: 0.000000e+00 SHD has Fcurr 0.000000e+00
+Time: 0.000000e+00 SHD F_rescale: 0.000000e+00, FTARG: 0.000000e+00, Fcurr: 0.000000e+00)
+Time: 0.000000e+00 SHD mFC_scale: 0.000000e+00, F_rescale: 0.000000e+00)
+FPS-0 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-1 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-2 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-3 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-4 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-5 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-6 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-7 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-8 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-9 SpawnDay: 150 AgeDay: 184 StartDay: 185 EndDay: 215  VERTembryo-0 0.000000e+00
+FPS-0 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-1 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-2 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-3 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-4 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-5 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-6 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-7 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-8 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00
+FPS-9 SpawnDay: 515 AgeDay: 549 StartDay: 550 EndDay: 580  VERTembryo-0 0.000000e+00

@@ -14,13 +14,14 @@ make_calsettings(
   biom.indx,
   init.file,
   catch.file,
+  run.prm,
   parameter.file = "parameter_table.csv"
 )
 }
 \arguments{
 \item{fg.file}{Character. Name of the functional group configuration file (CSV) located
 in inputs/model_configuration/.  Must contain the columns \code{Code},
-\code{Name}, \code{IsTurnedOn}, \code{IsCalibrated} and \code{NumCohorts}.}
+\code{Name}, \code{IsTurnedOn}, and \code{NumCohorts}.}
 
 \item{var.type}{Character vector. Target types to calibrate: any of
 "biomass", "weight", "abundance" and "catch".}
@@ -44,6 +45,9 @@ file, used to create weight-at-age and abundance targets.}
 \item{catch.file}{Character. Name of the observed catch CSV file, used to
 create catch targets.}
 
+\item{run.prm}{Character. Name of the Atlantis run parameter file in
+inputs/model_configuration/. The tstop parameter will be set to dt.timeseries.}
+
 \item{parameter.file}{Character. Name of the parameter table CSV file in
 inputs/, with one row per functional group and one column per parameter
 to calibrate, set to 1 if the parameter is calibrated for that group (see
@@ -59,7 +63,7 @@ Generates a calibration settings file for functional groups in an Atlantis model
 Creates a dataframe specifying which groups to calibrate, their associated variables,
 calibration weights, and data file paths.
 
-Only groups with \code{IsCalibrated == 1} in the parameter table are calibrated.
+Only groups with \code{IsCalibrated == 1} and \code{IsTurnedOn == 1} in the parameter table are calibrated.
 For each target type in \code{var.type}, a separate calibration settings file
 and corresponding target files are created (see
 \code{\link{create_target_files_biomass}},
