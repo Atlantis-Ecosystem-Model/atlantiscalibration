@@ -1,0 +1,49 @@
+#prefix used to save Output files
+prefix = "outputFolder/outputSETAS"
+# name of file with functional groups and parameters to calibrate
+parameter.file <- "parameter_table.csv"
+# functional group file
+fg.file     <- "SETasGroupsDem.csv"
+# biology parameter file
+biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"
+# run parameter file
+run.prm     <- "VMPA_setas_run_fishing_F_Trunk.prm"
+# initial conditions
+init.file   <- "INIT_VMPA_Jan2015.nc"
+# biomass index of a previous run, in outputFolder
+biom.indx   <- "outputSETASBiomIndx.txt"
+# observed catch time series: Code, Year, Catch
+catch.file  <- "catch_timeseries.csv"
+#  Target types for calibration "weight", "abundance", "catch"
+var.type      <- c("biomass","abundance")
+# likelihood for biomass, weight and catch targets
+fun.type      <- "lnorm2"
+  # number of time steps of each target in days, equivalent to tstop in the run file
+dt.timeseries <- 365
+# different weights for some groups, e.g.
+w.vector      <- NULL
+# w.vector <- tibble::tibble(Code = c("FPS", "FVS"), weight_new = c(0.5, 0.5))
+#name of calibration settings file, **do not change**
+calibration.settings   = "calibration_settings_*.csv"
+#name of calibration parameters file, **do not change**
+calibration.parameters = "calibration-parameters-complete.csv"
+# parallel workers and model runs per generation
+n.Cores      = 16
+# maximum number of generations; increase for production
+maxgen       = 3
+#name of folder where model configuration is saved **do not change**
+master       = here::here("inputs","model_configuration")
+# name of folder where runs are stored **do not change**
+run          = here::here("RUN")
+# path for file that saves restart options **do not change**
+restart.file = normalizePath(here::here("inputs","restart_file"))
+# parameter files of each run
+track.path   = here::here("outputs", "keep_track_calibration")
+# number of iterations to run before saving a restart, default is 1
+REPORT = 1
+#run as parallel
+parallel = TRUE
+#number of generations
+no.trace = 3
+
+

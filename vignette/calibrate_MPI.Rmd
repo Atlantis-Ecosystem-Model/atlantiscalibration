@@ -64,12 +64,6 @@ the shell script that runs the model (the only file with extension `.sh`),
 and the observed time series used as targets.
 
 ```{r model-files}
-fg.file     <- "SETasGroupsDem.csv"                 # functional groups
-biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"  # biology parameters
-run.prm     <- "VMPA_setas_run_fishing_F_Trunk.prm" # run parameters (tstop)
-init.file   <- "INIT_VMPA_Jan2015.nc"               # initial conditions
-biom.indx   <- "outputSETASBiomIndx.txt"            # biomass index of a previous run, in outputFolder
-catch.file  <- "catch_timeseries.csv"               # observed catch: Code, Year, Catch
 ```
 
 ### Requirements for the model configuration
@@ -131,7 +125,6 @@ with `repro_option()`, which writes `inputs/reproduction-option.csv`:
 ```{r repro-option}
 atlantiscalibration::repro_option(fg.file, biology.prm)
 
-parameter.file <- "parameter_table.csv"
 atlantiscalibration::read_parameter_table(parameter.file)
 ```
 
@@ -164,11 +157,6 @@ atlantiscalibration::read_parameter_table(parameter.file)
   in this file before step 4.
 
 ```{r make-calsettings}
-var.type      <- c("biomass","abundance") #  "weight", "abundance", "catch" target types
-fun.type      <- "lnorm2"  # likelihood for biomass, weight and catch targets
-dt.timeseries <- 365        # number of time steps of each target in days, equivalent to tstop in the run file
-w.vector      <- NULL      # different weights for some groups, e.g.
-# w.vector <- tibble::tibble(Code = c("FPS", "FVS"), weight_new = c(0.5, 0.5))
 
 atlantiscalibration::make_calsettings(fg.file = fg.file,
                  var.type       = var.type,
@@ -235,22 +223,22 @@ model, and the arguments of `run_model()` are file names relative to it.
 
 ```{r read-calibration}
 calibration <- atlantiscalibration::read_calibration(
-  calibration.settings   = "calibration_settings_*.csv",
-  calibration.parameters = "calibration-parameters-complete.csv",
-  n.Cores      = 16,  # parallel workers and model runs per generation
-  maxgen       = 3,   # maximum number of generations; increase for production
-  master       = here::here("inputs","model_configuration"),
-  run          = here::here("RUN"),
-  restart.file = normalizePath(here::here("inputs","restart_file")),
-  track.path   = here::here("outputs", "keep_track_calibration"), # parameter files of each run
-  REPORT = 1,    # number of iterations to run before saving a restart
-  parallel = TRUE, #run as parallel
-  no.trace = 3,
-  prefix = "outputFolder/outputSETAS",
-  fg.file = "SETasGroupsDem.csv",
-  biom.indx = "outputSETASBiomIndx.txt",
-  run.prm = "VMPA_setas_run_fishing_F_Trunk.prm",
-  dt.timeseries = 365
+  calibration.settings,  
+  calibration.parameters, 
+  n.Cores,
+  maxgen,
+  master,
+  run,
+  restart.file,
+  track.path,
+  REPORT,
+  parallel,
+  no.trace,
+  prefix,
+  fg.file,
+  biom.indx,
+  run.prm,
+  dt.timeseries
 )
 ```
 
