@@ -99,15 +99,12 @@ make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
 
       settings.ls[[eachvariable]] <- these.settings
 
-      atlantiscalibration::create_target_files_biomass(biom.indx = biom.indx,
-                                  fg.file = fg.file,
+      atlantiscalibration::create_target_files_biomass(fg.file = fg.file,
                                   output.path = here::here("inputs"),
                                   not.calibrated=no.cal.vector,
                                   dt.timeseries = dt.timeseries,
                                   unfished = FALSE,
                                   factor.unfished = 1.3,
-                                  initial.conditions = TRUE,
-                                  time.series = FALSE,
                                   biomass.file = "biomass_timeseries.csv",
                                   biology.prm = biology.prm,
                                   parameter.file = parameter.file)

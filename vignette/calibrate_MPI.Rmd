@@ -136,14 +136,13 @@ atlantiscalibration::read_parameter_table(parameter.file)
 
   | `var.type` | Target | Source | Likelihood |
   |------------|--------|--------|------------|
-  | `"biomass"` | `<Code>_biomass` | Initial biomass, from the biomass index of a previous run | `fun.type` |
+  | `"biomass"` | `<Code>_biomass` | Initial biomass from a time series file | `fun.type` |
   | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` |
   | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `multinom` |
   | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` |
 
   Each target is constant over `dt.timeseries` time steps.  Biomass targets
-  can also be created from an observed biomass time series (see
-  `create_target_files_biomass()`, `time.series = TRUE`).
+  are created from a biomass time series file (see `create_target_files_biomass().
 * **`inputs/calibration_settings_*.csv`**: one CSV file per target type
   (e.g., `calibration_settings_biomass.csv`, `calibration_settings_abundance.csv`),
   with one row per target in that type. Each row contains the
