@@ -14,3 +14,7 @@
 ^.*\.rdx$
 ^vignettes/.*\.html$
 ^vignettes/.*_files$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$

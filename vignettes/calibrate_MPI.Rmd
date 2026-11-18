@@ -131,11 +131,12 @@ atlantiscalibration::read_parameter_table(parameter.file)
 
   | `var.type` | Target | Source | Likelihood |
   |------------|--------|--------|------------|
-  | `"biomass"` | `<Code>_biomass` | Initial biomass from a time series file | `fun.type` |
-  | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` |
-  | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `multinom` |
-  | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` |
-  | `"prey"` | `<Code>_prey` | Proportions from a prey composition file  | `fun.type` |
+  | `"biomass"` | `<Code>_biomass` | Initial biomass from a time series file | `fun.type` = lnorm2 |
+  | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` = lnorm2 |
+  | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `fun.type` = `multinom` |
+  | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` = lnorm2 |
+  | `"prey"` | `<Code>_prey` | Proportions from a prey composition file  | `fun.type` = lnorm2 |
+** Note that prey target requires flagdietcheck 1 in the run.prm
 
   Each target is constant over `dt.timeseries` time steps.  Biomass targets
   are created from a biomass time series file (see `create_target_files_biomass().
