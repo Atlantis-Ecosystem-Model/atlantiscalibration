@@ -1,0 +1,350 @@
+# Calibrating Atlantis with MPI Parallelism
+
+## Overview
+
+This vignette describes how to calibrate an
+[Atlantis](https://research.csiro.au/atlantis/) ecosystem model with the
+**[calibrar](https://github.com/roliveros-ramos/calibrar)** package. The
+example uses the South East Australia Atlantis model (SETAS) and is
+designed to run on a multi-core server or HPC cluster.
+
+The calibration estimates **multiplicative factors** for selected
+biological and fishing parameters of the model. For each parameter and
+group, calibrar proposes a value `p` in log scale; the model is run with
+the original value of the parameter multiplied by `exp(p)`, so `p = 0`
+is the original model. Each model run is compared with **targets**
+(biomass, weight at age, abundance at age and catch), and the AHR-ES
+evolutionary algorithm searches for the factors that best fit all the
+targets.
+
+The workflow has six steps:
+
+1.  Prepare the model configuration and the input files.
+2.  Choose the parameters to calibrate for each functional group.
+3.  Create the calibration targets, settings and parameters.
+4.  Read the calibration inputs and build the objective function.
+5.  Run the calibration in parallel.
+6.  Inspect the results.
+
+## 1. Model configuration and input files
+
+The package uses the following folder structure (all paths are relative
+to the project root, found with
+[`here::here()`](https://here.r-lib.org/reference/here.html)):
+
+    inputs/                       # files created for the calibration
+      data/                       # target time series, one CSV per target
+      parameter_table.csv         # parameters to calibrate for each group (step 2)
+      reproduction-option.csv     # recruitment option of each group (step 2)
+      model_configuration/        # all the files needed to run the model
+        outputFolder/             # outputs of a previous run of the model
+    outputs/                      # plots
+      keep_track_calibration/     # parameter files used in each run of each iteration
+
+`inputs/model_configuration` contains the Atlantis model files:
+functional groups, biology, harvest and run parameter files, initial
+conditions, forcing, the shell script that runs the model (the only file
+with extension `.sh`), and the observed time series used as targets.
+
+### Requirements for the model configuration
+
+- **Functional groups file.** Add a column `IsCalibrated`, set to `1`
+  for the groups that are calibrated and `0` for those that are not.
+  Only groups with `IsTurnedOn == 1` and `IsCalibrated == 1` are
+  calibrated.
+
+- **Shell script.** The shell script that runs Atlantis is found by its
+  extension: there must be exactly one `.sh` file in the model
+  directory. The biology and harvest parameter files are the ones given
+  to its options `-b` and `-h`. At every run,
+  [`run_model()`](../reference/run_model.md) writes the edited
+  parameters to these same files, so the shell script does not need to
+  be changed. The first time it runs in a directory, it keeps a copy of
+  each original file as `<file>.original`, and the factors are always
+  applied to the values in this copy.
+  [`read_sh_file()`](../reference/read_sh_file.md) shows the files used
+  by the shell script:
+
+  ``` r
+
+  read_sh_file(here::here("inputs", "model_configuration"))
+  ```
+
+- **Output time steps.** The model outputs are compared with the last
+  `dt.timeseries` output time steps of each run, so the run length
+  (`tstop`) and output frequency (`toutinc`) in the run parameter file
+  must be set so that the last `dt.timeseries` outputs correspond to the
+  period of the targets. A run is considered crashed if it stops before
+  `tstop`; all its outputs are then set to zero.
+
+## 2. Choose the parameters to calibrate
+
+The parameters to calibrate, and the groups each one applies to, are set
+in `inputs/parameter_table.csv`. It has one row per functional group
+(column `Code`) and one column per parameter, set to `1` if the
+parameter is calibrated for that group and `0` if not. The optional
+columns `GroupType`, `IsTurnedOn` and `IsCalibrated` are also used if
+present.
+
+| Column              | Parameter                      | Edited in      |
+|---------------------|--------------------------------|----------------|
+| `mum`               | Maximum growth rate            | biology `.prm` |
+| `BHalpha`, `BHbeta` | Beverton-Holt recruitment      | biology `.prm` |
+| `KDENR`             | Recruits per adult             | biology `.prm` |
+| `mfc`               | Fishing mortality (`mFC`)      | harvest `.prm` |
+| `mQ`, `mL`          | Quadratic and linear mortality | biology `.prm` |
+| `C`                 | Clearance rate                 | biology `.prm` |
+| `E`                 | Assimilation efficiency        | biology `.prm` |
+| `pprey`             | Food availability              | biology `.prm` |
+
+It is best to calibrate one parameter per sensitive process. Rules for
+use:
+
+- `BHalpha`, `BHbeta` and `KDENR` are only calibrated for vertebrates
+  (`GroupType` `FISH`, `SHARK`, `BIRD` or `MAMMAL`).
+- `KDENR` is only calibrated for groups with recruitment option
+  `flagrecruit = 12`, and `BHalpha` and `BHbeta` for groups with
+  `flagrecruit = 3` (Beverton-Holt)
+
+The recruitment option of each group is read from the biology parameter
+file with [`repro_option()`](../reference/repro_option.md), which writes
+`inputs/reproduction-option.csv`:
+
+``` r
+
+atlantiscalibration::repro_option(fg.file, biology.prm)
+
+atlantiscalibration::read_parameter_table(parameter.file)
+```
+
+## 3. Create the calibration targets, settings and parameters
+
+[`make_calsettings()`](../reference/make_calsettings.md) creates all the
+files needed for the calibration:
+
+- **Targets**, one CSV per target in `inputs/data`:
+
+  | `var.type` | Target | Source | Likelihood |
+  |----|----|----|----|
+  | `"biomass"` | `<Code>_biomass` | Initial biomass from a time series file | `fun.type` = lnorm2 |
+  | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` = lnorm2 |
+  | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `fun.type` = `multinom` |
+  | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` = lnorm2 |
+  | `"prey"` | `<Code>_prey` | Proportions from a prey composition file | `fun.type` = lnorm2 |
+
+  \*\* Note that prey target requires flagdietcheck 1 in the run.prm
+
+  Each target is constant over `dt.timeseries` time steps. Biomass
+  targets are created from a biomass time series file (see
+  \`create_target_files_biomass().
+
+- **`inputs/calibration_settings_*.csv`**: one CSV file per target type
+  (e.g., `calibration_settings_biomass.csv`,
+  `calibration_settings_abundance.csv`), with one row per target in that
+  type. Each row contains the likelihood (`type`), weight, data file and
+  column (`varid`). Use `w.vector` to give different weights to some
+  groups.
+
+- **`inputs/calibration-parameters-complete.csv`**: one row per factor
+  to estimate, named after the parameter and group
+  (e.g. `mum_FPS_factor`, `ZS_mQ_factor`), with its initial value
+  (`paropt = 0`), bounds (`parmin = -1`, `parmax = 1`, i.e. factors
+  between `exp(-1) = 0.37` and `exp(1) = 2.7`) and phase (`parphase`).
+  The bounds and phases can be edited in this file before step 4.
+
+``` r
+
+
+atlantiscalibration::make_calsettings(fg.file = fg.file,
+                 var.type       = var.type,
+                 fun.type       = fun.type,
+                 dt.timeseries  = dt.timeseries,
+                 w.vector       = w.vector,
+                 biology.prm    = biology.prm,
+                 init.file      = init.file,
+                 catch.file     = catch.file,
+                 run.prm,
+                 parameter.file = parameter.file)
+```
+
+`fun.type` can be any likelihood available in calibrar (see
+[`?calibrar::calibration_setup`](https://roliveros-ramos.github.io/calibrar/reference/calibration_setup.html))
+or a user-defined function. The package includes
+[`likelihood_function()`](../reference/likelihood_function.md), which
+penalises simulated values outside a minimum-maximum envelope given by
+two columns of observed data; to use it, set `type` to
+`likelihood_function` for those targets in any of the
+`calibration_settings_*.csv` files.
+
+## 4. Read the calibration inputs and build the objective function
+
+[`read_calibration()`](../reference/read_calibration.md) reads the
+settings and targets with calibrar, reads the parameters, builds the
+objective function and sets up the optimiser. The objective function
+runs the model with [`run_model()`](../reference/run_model.md), which,
+at every parameter proposal:
+
+1.  multiplies the original value of each calibrated parameter by its
+    factor and writes it to the biology (`-b`) and harvest (`-h`)
+    parameter files of the shell script,
+2.  runs Atlantis with the shell script,
+3.  reads the outputs and returns one element per target: biomass by
+    group, weight at age, catch summed over fleets, and abundance at
+    age. If the run crashed, all outputs are zero.
+
+The parameter files used in every model run are saved in
+`outputs/keep_track_calibration` (argument `track.path`), with one
+folder per iteration (generation) and the run number in the file name:
+
+    outputs/keep_track_calibration/
+      iteration_001/
+        run_001_calibration-parameters.csv        # factors of run 1
+        run_001_VMPA_setas_biol_fishing_Trunk.prm # biology parameters of run 1
+        run_001_VMPA_setas_harvest_F_Trunk.prm    # harvest parameters, if mfc is calibrated
+        run_002_...
+      iteration_002/
+      ...
+      final_001/                                  # best solution at the end of phase 1
+        run_000_...
+
+The run number is the calibrar run directory (`<run>/i1`, `<run>/i2`,
+…). The best solution is evaluated again in `<run>/i0` at the end of
+each phase, and saved in `final_<phase>`. The iteration is counted in
+each run directory, so it continues correctly when a calibration is
+restarted.
+
+calibrar copies the `master` directory to a new directory under `run`
+for each model run, so `master` must contain all the files needed to run
+the model, and the arguments of
+[`run_model()`](../reference/run_model.md) are file names relative to
+it.
+
+``` r
+
+calibration <- atlantiscalibration::read_calibration(
+  calibration.settings,  
+  calibration.parameters, 
+  n.Cores,
+  maxgen,
+  master,
+  run,
+  restart.file,
+  track.path,
+  REPORT,
+  parallel,
+  no.trace,
+  prefix,
+  fg.file,
+  biom.indx,
+  run.prm,
+  dt.timeseries
+)
+```
+
+The control settings passed to calibrar are:
+
+| Setting | Value | Purpose |
+|----|----|----|
+| `maxit` / `maxgen` | `maxgen` | Maximum number of generations |
+| `popsize` | `n.Cores` | Model runs per generation |
+| `nCores` | `n.Cores` | Parallel workers; equal to `popsize` for full parallelism |
+| `REPORT` | 1 | Save a restart every generation |
+| `trace` | 3 | Report global and per-target fitness |
+
+## 5. Run the calibration
+
+[`run_calibration()`](../reference/run_calibration.md) starts a cluster
+with `n.Cores` workers, loads the packages and objects each worker
+needs, and runs the AHR-ES (Adaptive Hierarchical Recombination
+Evolution Strategy) optimiser, which is well suited to the noisy,
+expensive fitness evaluations of ecosystem models. Parameters are
+estimated in the phases given by `parphase`.
+
+**Note:** For parallel calibration to work, the `atlantiscalibration`
+package must be installed in the system library
+library(atlantiscalibratio)
+
+If the calibration is interrupted, running it again with the same
+`restart.file` continues from the last saved generation.
+
+## 6. Inspect the results
+
+The results are saved by calibrar in `<restart.file>.results`.
+[`compare_outputs()`](../reference/compare_outputs.md) compares the
+initial and optimised factors, and plots the fitness of each target for
+the best solution of each generation:
+
+``` r
+
+comparison <- atlantiscalibration::compare_outputs(forcing = calibration$forcing)
+
+comparison$param_comparison  # factor_new: factor applied to the original parameter value
+comparison$plot_changes
+```
+
+The trace of the optimisation has the global fitness
+(`results$trace$value`), the fitness of each target
+(`results$trace$fitness`) and the parameters (`results$trace$par`) of
+the best solution of each generation:
+
+``` r
+
+results <- readRDS(here::here("inputs","restart_file.results"))
+
+matplot(results$trace$par, type = "l", lty = 1,
+        xlab = "Generation", ylab = "Parameter (log factor)")
+```
+
+The calibrated parameter values are the original values multiplied by
+`exp(results$par)`. To create the calibrated parameter files, run
+[`run_model()`](../reference/run_model.md) once with `results$par` in a
+copy of the model configuration.
+
+``` r
+
+atlantiscalibration::plot_calibration_targets(
+    run_dir = here::here("RUN"),
+    data_dir = here::here("inputs", "data"),
+    settings_dir = here::here("inputs"),
+    output_dir = here::here("outputs"),
+    parameter_file = here::here("inputs", "parameter_table.csv"),
+    output_prefix = "outputSETAS"
+    )
+```
+
+------------------------------------------------------------------------
+
+## Session info
+
+``` r
+
+sessionInfo()
+#> R version 4.6.2 (2026-10-29)
+#> Platform: x86_64-pc-linux-gnu
+#> Running under: Ubuntu 26.04.1 LTS
+#> 
+#> Matrix products: default
+#> BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
+#> LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.32.so;  LAPACK version 3.12.0
+#> 
+#> locale:
+#>  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+#>  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+#>  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+#> [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+#> 
+#> time zone: UTC
+#> tzcode source: system (glibc)
+#> 
+#> attached base packages:
+#> [1] stats     graphics  grDevices utils     datasets  methods   base     
+#> 
+#> loaded via a namespace (and not attached):
+#>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
+#>  [5] xfun_0.62         cachem_1.1.0      knitr_1.52        htmltools_0.5.9  
+#>  [9] rmarkdown_2.32    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
+#> [13] pkgdown_2.2.1     textshaping_1.0.5 jquerylib_0.1.4   systemfonts_1.3.3
+#> [17] compiler_4.6.2    tools_4.6.2       ragg_1.5.2        bslib_0.12.0     
+#> [21] evaluate_1.0.5    yaml_2.3.12       otel_0.3.0        jsonlite_2.0.0   
+#> [25] rlang_1.3.0       fs_2.1.0
+```
