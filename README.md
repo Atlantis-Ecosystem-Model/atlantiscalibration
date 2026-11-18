@@ -3,6 +3,7 @@
 Package to calibrate the Atlantis ecosystem model using the **calibrar** R package.  
 The example included here is applied to the **Southeast Tasmania Atlantis Model**.
 
+See the [package documentation](https://atlantis-ecosystem-model.github.io/atlantiscalibration/).
 
 ![V3 Figure 1 papier calibration](https://github.com/user-attachments/assets/0f1aaa58-dfaf-4231-869b-87db8c276bf0)
 
@@ -30,6 +31,10 @@ To perform the Atlantis Calibration with calibrar, review our material in this o
    https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.14452
 
 ## Development Setup
+
+The pkgdown workflow rebuilds and publishes the documentation on pushes to `main`.
+To enable publishing, a repository admin must set **Settings → Pages → Source**
+to **GitHub Actions**. Pull requests build the site without publishing it.
 
 ### Installation
 
