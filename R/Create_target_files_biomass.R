@@ -65,16 +65,9 @@
 #' @param factor.unfished Numeric.  Factor applied to the initial biomass of
 #'   fished groups to obtain the unfished biomass target.  Only used when
 #'   \code{unfished = TRUE}.  Default: \code{1.3}.
-#' @param initial.conditions Logical.  If \code{TRUE}, use the initial biomass
-#'   in \code{biom.indx} as a constant target.  Default: \code{TRUE}.
-#' @param time.series Logical.  If \code{TRUE}, use the observed biomass time
-#'   series in \code{biomass.file} as the target.  Exactly one of
-#'   \code{initial.conditions} and \code{time.series} must be \code{TRUE}.
-#'   Default: \code{FALSE}.
-#' @param biomass.file Character.  Name of the observed biomass CSV file in
+#' @param biomass.file Character.  Name of the target biomass CSV file in
 #'   \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
-#'   and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
-#'   \code{biomass_timeseries.csv}.
+#'   and \code{Biomass}.  Default: \code{biomass_timeseries.csv}.
 #' @param biology.prm Character.  Name of the Atlantis biology parameter file
 #'   in \code{inputs/model_configuration}.
 #' @param parameter.file Character.  Name of the parameter table CSV file in
@@ -108,35 +101,20 @@
 #'     unfished      = TRUE
 #'   )
 #'
-#'   # Observed biomass time series as target
-#'   create_target_files_biomass(
-#'     fg.file            = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv",
-#'     initial.conditions = FALSE,
-#'     time.series        = TRUE
 #'   )
 #' }
-create_target_files_biomass <- function(biom.indx = NULL,
-                                        fg.file,
+create_target_files_biomass <- function(fg.file,
                                         output.path = here::here("inputs"),
                                         not.calibrated,
                                         dt.timeseries = 5,
                                         unfished = FALSE,
                                         factor.unfished = 1.3,
-                                        initial.conditions = TRUE,
-                                        time.series = FALSE,
                                         biomass.file = "biomass_timeseries.csv",
                                         biology.prm,
                                         parameter.file = "parameter_table.csv",
                                         repro.file = "reproduction-option.csv"){
 
-  # Targets come from either initial conditions or an observed time series
-  if (initial.conditions == time.series){
-    stop("Set exactly one of initial.conditions or time.series to TRUE")
-  }
-  if (initial.conditions && is.null(biom.indx)){
-    stop("biom.indx is required when initial.conditions = TRUE")
-  }
-
+  
   config <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
 
   # Suffix for output files, so unfished outputs do not overwrite standard ones
@@ -153,37 +131,7 @@ create_target_files_biomass <- function(biom.indx = NULL,
   # Create data files
   ##################
 
-  if (initial.conditions){
-
-    # Initial biomass is the first time step of the biomass index
-
-    biom.data <- data.table::fread(here::here("inputs","model_configuration","outputFolder",biom.indx), header = TRUE, check.names = FALSE)
-
-    Bio.ini <- biom.data[1, ] |>
-      dplyr::select(-dplyr::contains("Rel"), -Time) |>
-      tidyr::pivot_longer(cols = dplyr::everything(),
-                          names_to = "Code", values_to = "Ini") |>
-      dplyr::mutate(Ini = round(as.numeric(Ini)))
-
-    Bio.ini <- merge(Bio.ini, config[, c("Code", "Name", "IsCalibrated", "IsFished")], by = "Code")
-    Bio.ini <- Bio.ini[Bio.ini$IsCalibrated == 1, ]
-    Bio.ini$Biomass <- Bio.ini$Ini
-
-    # Unfished scenario: only fished groups, with scaled initial biomass
-    if (unfished){
-      Bio.ini <- Bio.ini[Bio.ini$IsFished == 1, ]
-      Bio.ini$Biomass <- Bio.ini$Ini * factor.unfished
-    }
-
-    for (i in seq_along(Bio.ini$Code)){
-      data <- data.frame(Time = 1:dt.timeseries, Biomass = rep(Bio.ini$Biomass[i], dt.timeseries))
-      utils::write.csv(data, file.path(data.path, paste0(Bio.ini$Code[i], "_biomass.csv")), row.names = FALSE)
-    }
-
-    Bio.groups <- Bio.ini
-  }
-
-  if (time.series){
+  
 
     # Observed biomass time series, with columns Code, Year and Biomass
 
@@ -210,7 +158,7 @@ create_target_files_biomass <- function(biom.indx = NULL,
       data <- data.frame(Time = a$Year, Biomass = a$Biomass)
       utils::write.csv(data, file.path(data.path, paste0(i, "_biomass.csv")), row.names = FALSE)
     }
-  }
+  
 
   ##################
   # Create calibration setting file

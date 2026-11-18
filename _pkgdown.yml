@@ -1,0 +1,19 @@
+url: ~
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, news]
+  components:
+    intro:
+      text: Get Started
+      href: articles/calibrate_MPI.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    news:
+      text: Changelog
+      href: news/index.html
+
+# Reference index is generated automatically from /man (all topics included).

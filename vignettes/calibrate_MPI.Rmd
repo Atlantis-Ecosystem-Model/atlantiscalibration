@@ -63,15 +63,6 @@ groups, biology, harvest and run parameter files, initial conditions, forcing,
 the shell script that runs the model (the only file with extension `.sh`),
 and the observed time series used as targets.
 
-```{r model-files}
-fg.file     <- "SETasGroupsDem.csv"                 # functional groups
-biology.prm <- "VMPA_setas_biol_fishing_Trunk.prm"  # biology parameters
-run.prm     <- "VMPA_setas_run_fishing_F_Trunk.prm" # run parameters (tstop)
-init.file   <- "INIT_VMPA_Jan2015.nc"               # initial conditions
-biom.indx   <- "outputSETASBiomIndx.txt"            # biomass index of a previous run, in outputFolder
-catch.file  <- "catch_timeseries.csv"               # observed catch: Code, Year, Catch
-```
-
 ### Requirements for the model configuration
 
 * **Functional groups file.**  Add a column `IsCalibrated`, set to `1` for the
@@ -114,16 +105,14 @@ for that group and `0` if not.  The optional columns `GroupType`,
 | `mQ`, `mL` | Quadratic and linear mortality | biology `.prm` |
 | `C` | Clearance rate | biology `.prm` |
 | `E` | Assimilation efficiency | biology `.prm` |
-
-It is best to calibrate one parameter per sensitive process.  Some rules are
-applied on top of the table:
+| `pprey`| Food availability | biology `.prm` |
+It is best to calibrate one parameter per sensitive process.  Rules for use:
 
 * `BHalpha`, `BHbeta` and `KDENR` are only calibrated for vertebrates
   (`GroupType` `FISH`, `SHARK`, `BIRD` or `MAMMAL`).
 * `KDENR` is only calibrated for groups with recruitment option
   `flagrecruit = 12`, and `BHalpha` and `BHbeta` for groups with
-  `flagrecruit = 3` (Beverton-Holt).
-* `mfc` is only calibrated for groups with `IsFished == 1`.
+  `flagrecruit = 3` (Beverton-Holt)
 
 The recruitment option of each group is read from the biology parameter file
 with `repro_option()`, which writes `inputs/reproduction-option.csv`:
@@ -131,7 +120,6 @@ with `repro_option()`, which writes `inputs/reproduction-option.csv`:
 ```{r repro-option}
 atlantiscalibration::repro_option(fg.file, biology.prm)
 
-parameter.file <- "parameter_table.csv"
 atlantiscalibration::read_parameter_table(parameter.file)
 ```
 
@@ -143,14 +131,15 @@ atlantiscalibration::read_parameter_table(parameter.file)
 
   | `var.type` | Target | Source | Likelihood |
   |------------|--------|--------|------------|
-  | `"biomass"` | `<Code>_biomass` | Initial biomass, from the biomass index of a previous run | `fun.type` |
-  | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` |
-  | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `multinom` |
-  | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` |
+  | `"biomass"` | `<Code>_biomass` | Initial biomass from a time series file | `fun.type` = lnorm2 |
+  | `"weight"` | `<Name><age>_w` | Initial weight at age, from the initial conditions | `fun.type` = lnorm2 |
+  | `"abundance"` | `<Name>_Nums` | Initial abundance at age, from the initial conditions | `fun.type` = `multinom` |
+  | `"catch"` | `<Name>_catch` | Median observed catch | `fun.type` = lnorm2 |
+  | `"prey"` | `<Code>_prey` | Proportions from a prey composition file  | `fun.type` = lnorm2 |
+** Note that prey target requires flagdietcheck 1 in the run.prm
 
   Each target is constant over `dt.timeseries` time steps.  Biomass targets
-  can also be created from an observed biomass time series (see
-  `create_target_files_biomass()`, `time.series = TRUE`).
+  are created from a biomass time series file (see `create_target_files_biomass().
 * **`inputs/calibration_settings_*.csv`**: one CSV file per target type
   (e.g., `calibration_settings_biomass.csv`, `calibration_settings_abundance.csv`),
   with one row per target in that type. Each row contains the
@@ -164,11 +153,6 @@ atlantiscalibration::read_parameter_table(parameter.file)
   in this file before step 4.
 
 ```{r make-calsettings}
-var.type      <- c("biomass","abundance") #  "weight", "abundance", "catch" target types
-fun.type      <- "lnorm2"  # likelihood for biomass, weight and catch targets
-dt.timeseries <- 365        # number of time steps of each target in days, equivalent to tstop in the run file
-w.vector      <- NULL      # different weights for some groups, e.g.
-# w.vector <- tibble::tibble(Code = c("FPS", "FVS"), weight_new = c(0.5, 0.5))
 
 atlantiscalibration::make_calsettings(fg.file = fg.file,
                  var.type       = var.type,
@@ -176,7 +160,6 @@ atlantiscalibration::make_calsettings(fg.file = fg.file,
                  dt.timeseries  = dt.timeseries,
                  w.vector       = w.vector,
                  biology.prm    = biology.prm,
-                 biom.indx      = biom.indx,
                  init.file      = init.file,
                  catch.file     = catch.file,
                  run.prm,
@@ -235,22 +218,22 @@ model, and the arguments of `run_model()` are file names relative to it.
 
 ```{r read-calibration}
 calibration <- atlantiscalibration::read_calibration(
-  calibration.settings   = "calibration_settings_*.csv",
-  calibration.parameters = "calibration-parameters-complete.csv",
-  n.Cores      = 16,  # parallel workers and model runs per generation
-  maxgen       = 3,   # maximum number of generations; increase for production
-  master       = here::here("inputs","model_configuration"),
-  run          = here::here("RUN"),
-  restart.file = normalizePath(here::here("inputs","restart_file")),
-  track.path   = here::here("outputs", "keep_track_calibration"), # parameter files of each run
-  REPORT = 1,    # number of iterations to run before saving a restart
-  parallel = TRUE, #run as parallel
-  no.trace = 3,
-  prefix = "outputFolder/outputSETAS",
-  fg.file = "SETasGroupsDem.csv",
-  biom.indx = "outputSETASBiomIndx.txt",
-  run.prm = "VMPA_setas_run_fishing_F_Trunk.prm",
-  dt.timeseries = 365
+  calibration.settings,  
+  calibration.parameters, 
+  n.Cores,
+  maxgen,
+  master,
+  run,
+  restart.file,
+  track.path,
+  REPORT,
+  parallel,
+  no.trace,
+  prefix,
+  fg.file,
+  biom.indx,
+  run.prm,
+  dt.timeseries
 )
 ```
 
