@@ -34,7 +34,7 @@ repro_option <- function(fg.file, biology.prm){
   prm.lines <- unlist(strsplit(prm.data, "\n"))
 
   flagrecruit.lines <- tibble::tibble(parameter = grep("^flagrecruit", prm.lines, value = TRUE)) |>
-    dplyr::mutate(parameter_corr = gsub("  "," ", parameter)) |>
+    dplyr::mutate(parameter_corr = trimws(gsub("  "," ", parameter))) |>
     tidyr::separate_wider_delim(parameter_corr, delim=" ", names=c("parameter_name","flagrecruit","extra")) |>
     dplyr::mutate(Code=gsub("flagrecruit","",parameter_name)) |>
     dplyr::select(Code, flagrecruit)

@@ -5,7 +5,7 @@
 #' calibrated for that group and \code{0} if not.  Parameter column names are
 #' matched without regard to case or surrounding spaces and renamed to
 #' \code{mum}, \code{BHalpha}, \code{BHbeta}, \code{KDENR}, \code{mfc},
-#' \code{mQ}, \code{mL}, \code{C} and \code{E}.
+#' \code{mQ}, \code{mL}, \code{C}, \code{E}, and \code{pprey}.
 #'
 #' @param parameter.file Character.  Name of the parameter table CSV file in
 #'   \code{inputs}.  Must contain a \code{Code} column and one or more
@@ -31,7 +31,7 @@ read_parameter_table <- function(parameter.file){
   }
 
   # Standard parameter names, matched without regard to case
-  parameters <- c("mum", "BHalpha", "BHbeta", "KDENR", "mfc", "mQ", "mL", "C", "E")
+  parameters <- c("mum", "BHalpha", "BHbeta", "KDENR", "mfc", "mQ", "mL", "C", "E", "pprey")
   info.columns <- c("Code", "GroupType", "IsTurnedOn", "IsCalibrated")
 
   param.columns <- setdiff(names(param.table), info.columns)

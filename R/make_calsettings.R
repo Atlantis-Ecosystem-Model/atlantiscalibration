@@ -23,8 +23,6 @@
 #'   "weight_new" to override default weights.  If NULL, default weights are used.
 #' @param biology.prm Character. Name of the Atlantis biology parameter file in
 #'   inputs/model_configuration/.
-#' @param biom.indx Character. Name of the Atlantis biomass index output file
-#'   (\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.
 #' @param init.file Character. Name of the Atlantis initial conditions NetCDF
 #'   file, used to create weight-at-age and abundance targets.
 #' @param catch.file Character. Name of the observed catch CSV file, used to
@@ -48,7 +46,6 @@
 #'                  dt.timeseries = 5,
 #'                  w.vector      = NULL,
 #'                  biology.prm   = "VMPA_setas_biol_fishing_Trunk.prm",
-#'                  biom.indx     = "outputSETASBiomIndx.txt",
 #'                  init.file     = "INIT_VMPA_Jan2015.nc",
 #'                  catch.file    = "catch_timeseries.csv",
 #'                  parameter.file = "parameter_table.csv")
@@ -56,7 +53,7 @@
 #'
 #' @export
 make_calsettings <- function(fg.file, var.type, fun.type, dt.timeseries,
-                             w.vector, biology.prm, biom.indx, init.file, catch.file,
+                             w.vector, biology.prm, init.file, catch.file,
                              run.prm, parameter.file = "parameter_table.csv"){
 
   # Read functional group configuration file

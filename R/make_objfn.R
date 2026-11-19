@@ -24,7 +24,7 @@
 #'   \code{paropt}, \code{parmin}, \code{parmax}, and \code{parphase}.  Row
 #'   names are used as parameter names.
 #' @param ... Arguments passed to \code{\link{run_model}} at every run:
-#'   \code{prefix}, \code{fg.file}, \code{biom.indx}, \code{run.prm} and
+#'   \code{prefix}, \code{fg.file}, \code{run.prm} and
 #'   \code{dt.timeseries}.  The shell script and the biology and harvest
 #'   parameter files are found by \code{\link{run_model}} itself.
 #'
@@ -38,7 +38,6 @@
 #'   objfn <- make_objfn(setup, observed, forcing,
 #'                       prefix = "outputFolder/outputSETAS",
 #'                       fg.file = "SETasGroupsDem.csv",
-#'                       biom.indx = "outputFolder/outputSETASBiomIndx.txt",
 #'                       run.prm = "VMPA_setas_run_fishing_F_Trunk.prm",
 #'                       dt.timeseries = 5)
 #'   # Evaluate the objective function at the initial parameter values

@@ -114,19 +114,8 @@ The recruitment option of each group is read from the biology parameter file.
 All the initial setup steps are performed together with `setup_calibration()`:
 
 ```{r setup-calibration}
-atlantiscalibration::setup_calibration(
-  fg.file       = fg.file,
-  biology.prm   = biology.prm,
-  parameter.file = parameter.file,
-  var.type      = var.type,
-  fun.type      = fun.type,
-  dt.timeseries = dt.timeseries,
-  w.vector      = w.vector,
-  biom.indx     = biom.indx,
-  init.file     = init.file,
-  catch.file    = catch.file,
-  run.prm       = run.prm
-)
+# setup_calibration() reads all settings from inputs/settings_file.txt
+atlantiscalibration::setup_calibration()
 ```
 
 This function performs the following steps in sequence:
@@ -230,7 +219,6 @@ calibration <- atlantiscalibration::read_calibration(
   no.trace,
   prefix,
   fg.file,
-  biom.indx,
   run.prm,
   dt.timeseries
 )

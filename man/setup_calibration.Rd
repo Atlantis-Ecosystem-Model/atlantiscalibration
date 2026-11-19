@@ -5,51 +5,60 @@
 \title{Set up initial calibration configuration}
 \usage{
 setup_calibration(
-  fg.file,
-  biology.prm,
-  parameter.file = "parameter_table.csv",
-  var.type,
-  fun.type,
-  dt.timeseries,
+  fg.file = NULL,
+  biology.prm = NULL,
+  parameter.file = NULL,
+  var.type = NULL,
+  fun.type = NULL,
+  dt.timeseries = NULL,
   w.vector = NULL,
-  biom.indx,
-  init.file,
-  catch.file,
-  run.prm,
+  biom.indx = NULL,
+  init.file = NULL,
+  catch.file = NULL,
+  run.prm = NULL,
+  settings.file = NULL,
   pkg_path = NULL
 )
 }
 \arguments{
 \item{fg.file}{Character. Name of the functional groups CSV file in
-\code{inputs/model_configuration}.}
+\code{inputs/model_configuration}. If \code{NULL}, read from settings file.}
 
 \item{biology.prm}{Character. Name of the Atlantis biology parameter file in
-\code{inputs/model_configuration}.}
+\code{inputs/model_configuration}. If \code{NULL}, read from settings file.}
 
 \item{parameter.file}{Character. Name of the parameter table CSV file in
-\code{inputs/}. Default: \code{"parameter_table.csv"}.}
+\code{inputs/}. If \code{NULL}, read from settings file.}
 
 \item{var.type}{Character vector. Target types to calibrate: any of
-\code{"biomass"}, \code{"weight"}, \code{"abundance"} and \code{"catch"}.}
+\code{"biomass"}, \code{"weight"}, \code{"abundance"} and \code{"catch"}.
+If \code{NULL}, read from settings file.}
 
-\item{fun.type}{Character. Calibrar package likelihood function for calibration.}
+\item{fun.type}{Character. Calibrar package likelihood function for calibration.
+If \code{NULL}, read from settings file.}
 
-\item{dt.timeseries}{Integer. Number of time steps in each target time series.}
+\item{dt.timeseries}{Integer. Number of time steps in each target time series.
+If \code{NULL}, read from settings file.}
 
 \item{w.vector}{Data frame. Optional custom weights with columns \code{"Code"}
 and \code{"weight_new"}. If \code{NULL}, default weights are used.}
 
 \item{biom.indx}{Character. Name of the Atlantis biomass index output file
-(\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.}
+(\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.
+If \code{NULL}, read from settings file.}
 
 \item{init.file}{Character. Name of the Atlantis initial conditions NetCDF
-file, used to create weight-at-age and abundance targets.}
+file, used to create weight-at-age and abundance targets.
+If \code{NULL}, read from settings file.}
 
 \item{catch.file}{Character. Name of the observed catch CSV file, used to
-create catch targets.}
+create catch targets. If \code{NULL}, read from settings file.}
 
 \item{run.prm}{Character. Name of the Atlantis run parameter file in
-\code{inputs/model_configuration/}.}
+\code{inputs/model_configuration/}. If \code{NULL}, read from settings file.}
+
+\item{settings.file}{Character. Path to the calibration settings file.
+Defaults to \code{inputs/settings_file.txt}.}
 
 \item{pkg_path}{Character. Optional path to the atlantiscalibration package
 directory. If \code{NULL} (default), uses \code{here::here()} to find the
@@ -63,7 +72,11 @@ Invisibly returns a list with the results of each setup step:
 \item{calsettings}{Result from make_calsettings()}
 }
 \description{
-Wrapper function that performs all initial calibration setup steps in sequence:
+Wrapper function that performs all initial calibration setup steps in sequence.
+By default, reads all settings from \code{inputs/settings_file.txt}, but
+individual parameters can be overridden by passing them as arguments.
+}
+\details{
 \enumerate{
 \item Verifies and displays the shell script configuration
 \item Reads reproduction options from the biology parameter file
@@ -71,8 +84,7 @@ Wrapper function that performs all initial calibration setup steps in sequence:
 \item Updates forcing file paths to absolute paths
 \item Creates calibration settings and target files
 }
-}
-\details{
+
 This is a convenience wrapper that combines five setup steps:
 \enumerate{
 \item \code{\link{read_sh_file}} - Verifies and displays shell script configuration
@@ -84,21 +96,17 @@ This is a convenience wrapper that combines five setup steps:
 }
 \examples{
 \dontrun{
+  # Use default settings from inputs/settings_file.txt
+  setup_calibration()
+
+  # Or override specific parameters
   setup_calibration(
-    fg.file       = "SETasGroupsDem.csv",
-    biology.prm   = "VMPA_setas_biol_fishing_Trunk.prm",
-    parameter.file = "parameter_table.csv",
     var.type      = c("biomass", "weight"),
-    fun.type      = "lnorm2",
-    dt.timeseries = 5,
-    biom.indx     = "outputSETASBiomIndx.txt",
-    init.file     = "INIT_VMPA_Jan2015.nc",
-    catch.file    = "catch_timeseries.csv",
-    run.prm       = "VMPA_setas_run_fishing_F_Trunk.prm"
+    fun.type      = "lnorm2"
   )
 }
 }
 \seealso{
 \code{\link{read_sh_file}}, \code{\link{repro_option}}, \code{\link{read_parameter_table}},
-\code{\link{setup_forcing_paths}}, \code{\link{make_calsettings}}
+\code{\link{setup_forcing_paths}}, \code{\link{make_calsettings}}, \code{\link{read_settings}}
 }

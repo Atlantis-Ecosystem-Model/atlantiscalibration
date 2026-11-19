@@ -1,6 +1,9 @@
 #' Set up initial calibration configuration
 #'
-#' Wrapper function that performs all initial calibration setup steps in sequence:
+#' Wrapper function that performs all initial calibration setup steps in sequence.
+#' By default, reads all settings from \code{inputs/settings_file.txt}, but
+#' individual parameters can be overridden by passing them as arguments.
+#'
 #' \enumerate{
 #'   \item Verifies and displays the shell script configuration
 #'   \item Reads reproduction options from the biology parameter file
@@ -10,25 +13,29 @@
 #' }
 #'
 #' @param fg.file Character. Name of the functional groups CSV file in
-#'   \code{inputs/model_configuration}.
+#'   \code{inputs/model_configuration}. If \code{NULL}, read from settings file.
 #' @param biology.prm Character. Name of the Atlantis biology parameter file in
-#'   \code{inputs/model_configuration}.
+#'   \code{inputs/model_configuration}. If \code{NULL}, read from settings file.
 #' @param parameter.file Character. Name of the parameter table CSV file in
-#'   \code{inputs/}. Default: \code{"parameter_table.csv"}.
+#'   \code{inputs/}. If \code{NULL}, read from settings file.
 #' @param var.type Character vector. Target types to calibrate: any of
 #'   \code{"biomass"}, \code{"weight"}, \code{"abundance"} and \code{"catch"}.
+#'   If \code{NULL}, read from settings file.
 #' @param fun.type Character. Calibrar package likelihood function for calibration.
+#'   If \code{NULL}, read from settings file.
 #' @param dt.timeseries Integer. Number of time steps in each target time series.
+#'   If \code{NULL}, read from settings file.
 #' @param w.vector Data frame. Optional custom weights with columns \code{"Code"}
 #'   and \code{"weight_new"}. If \code{NULL}, default weights are used.
-#' @param biom.indx Character. Name of the Atlantis biomass index output file
-#'   (\code{<prefix>_OUTBiomIndx.txt}), used to create biomass targets.
 #' @param init.file Character. Name of the Atlantis initial conditions NetCDF
 #'   file, used to create weight-at-age and abundance targets.
+#'   If \code{NULL}, read from settings file.
 #' @param catch.file Character. Name of the observed catch CSV file, used to
-#'   create catch targets.
+#'   create catch targets. If \code{NULL}, read from settings file.
 #' @param run.prm Character. Name of the Atlantis run parameter file in
-#'   \code{inputs/model_configuration/}.
+#'   \code{inputs/model_configuration/}. If \code{NULL}, read from settings file.
+#' @param settings.file Character. Path to the calibration settings file.
+#'   Defaults to \code{inputs/settings_file.txt}.
 #' @param pkg_path Character. Optional path to the atlantiscalibration package
 #'   directory. If \code{NULL} (default), uses \code{here::here()} to find the
 #'   project root.
@@ -51,37 +58,88 @@
 #'
 #' @seealso
 #' \code{\link{read_sh_file}}, \code{\link{repro_option}}, \code{\link{read_parameter_table}},
-#' \code{\link{setup_forcing_paths}}, \code{\link{make_calsettings}}
+#' \code{\link{setup_forcing_paths}}, \code{\link{make_calsettings}}, \code{\link{read_settings}}
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#'   # Use default settings from inputs/settings_file.txt
+#'   setup_calibration()
+#'
+#'   # Or override specific parameters
 #'   setup_calibration(
-#'     fg.file       = "SETasGroupsDem.csv",
-#'     biology.prm   = "VMPA_setas_biol_fishing_Trunk.prm",
-#'     parameter.file = "parameter_table.csv",
 #'     var.type      = c("biomass", "weight"),
-#'     fun.type      = "lnorm2",
-#'     dt.timeseries = 5,
-#'     biom.indx     = "outputSETASBiomIndx.txt",
-#'     init.file     = "INIT_VMPA_Jan2015.nc",
-#'     catch.file    = "catch_timeseries.csv",
-#'     run.prm       = "VMPA_setas_run_fishing_F_Trunk.prm"
+#'     fun.type      = "lnorm2"
 #'   )
 #' }
-setup_calibration <- function(fg.file,
-                              biology.prm,
-                              parameter.file = "parameter_table.csv",
-                              var.type,
-                              fun.type,
-                              dt.timeseries,
+setup_calibration <- function(fg.file = NULL,
+                              biology.prm = NULL,
+                              parameter.file = NULL,
+                              var.type = NULL,
+                              fun.type = NULL,
+                              dt.timeseries = NULL,
                               w.vector = NULL,
-                              biom.indx,
-                              init.file,
-                              catch.file,
-                              run.prm,
+                              init.file = NULL,
+                              catch.file = NULL,
+                              run.prm = NULL,
+                              settings.file = NULL,
                               pkg_path = NULL) {
+
+  # If settings.file not provided, use default location
+  if (is.null(settings.file)) {
+    settings.file <- here::here("inputs", "settings_file.txt")
+  }
+
+  if (!file.exists(settings.file)) {
+    stop("Settings file not found: ", settings.file, "\n",
+         "Make sure you have inputs/settings_file.txt in your project directory.")
+  }
+
+  # Read settings from file into calling environment AND temporary environment
+  read_settings(settings.file, envir = parent.frame())
+
+  # Also load into temporary environment for validation
+  settings_env <- new.env()
+  read_settings(settings.file, envir = settings_env)
+
+  # Use provided arguments, or fall back to settings file values
+  if (is.null(fg.file)) {
+    fg.file <- tryCatch(settings_env$fg.file, error = function(e) NULL)
+    if (is.null(fg.file)) stop("fg.file not found in settings file or provided as argument")
+  }
+  if (is.null(biology.prm)) {
+    biology.prm <- tryCatch(settings_env$biology.prm, error = function(e) NULL)
+    if (is.null(biology.prm)) stop("biology.prm not found in settings file or provided as argument")
+  }
+  if (is.null(parameter.file)) {
+    parameter.file <- tryCatch(settings_env$parameter.file, error = function(e) NULL)
+    if (is.null(parameter.file)) parameter.file <- "parameter_table.csv"
+  }
+  if (is.null(var.type)) {
+    var.type <- tryCatch(settings_env$var.type, error = function(e) NULL)
+    if (is.null(var.type)) stop("var.type not found in settings file or provided as argument")
+  }
+  if (is.null(fun.type)) {
+    fun.type <- tryCatch(settings_env$fun.type, error = function(e) NULL)
+    if (is.null(fun.type)) stop("fun.type not found in settings file or provided as argument")
+  }
+  if (is.null(dt.timeseries)) {
+    dt.timeseries <- tryCatch(settings_env$dt.timeseries, error = function(e) NULL)
+    if (is.null(dt.timeseries)) stop("dt.timeseries not found in settings file or provided as argument")
+  }
+  if (is.null(init.file)) {
+    init.file <- tryCatch(settings_env$init.file, error = function(e) NULL)
+    if (is.null(init.file)) stop("init.file not found in settings file or provided as argument")
+  }
+  if (is.null(catch.file)) {
+    catch.file <- tryCatch(settings_env$catch.file, error = function(e) NULL)
+    if (is.null(catch.file)) stop("catch.file not found in settings file or provided as argument")
+  }
+  if (is.null(run.prm)) {
+    run.prm <- tryCatch(settings_env$run.prm, error = function(e) NULL)
+    if (is.null(run.prm)) stop("run.prm not found in settings file or provided as argument")
+  }
 
   message(paste(rep("=", 70), collapse = ""))
   message("Step 1: Verifying shell script configuration...")
@@ -123,8 +181,7 @@ setup_calibration <- function(fg.file,
     dt.timeseries = dt.timeseries,
     w.vector      = w.vector,
     biology.prm   = biology.prm,
-    biom.indx     = biom.indx,
-    init.file     = init.file,
+     init.file     = init.file,
     catch.file    = catch.file,
     run.prm       = run.prm,
     parameter.file = parameter.file

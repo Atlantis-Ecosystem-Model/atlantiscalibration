@@ -262,7 +262,7 @@ plot_calibration_targets <- function(
 }
 
 
-#' Read abundance output from NetCDF files via biom.indx file
+#' Read abundance output from NetCDF files
 #' @keywords internal
 .read_abundance_iterations <- function(iteration_dirs, iteration_labels,
                                        target_groups, output_prefix) {

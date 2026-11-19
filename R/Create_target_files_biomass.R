@@ -46,9 +46,6 @@
 #' and \code{biomass_unfished_crash.txt}.  \code{mfc} factors are not created
 #' in this case, as fishing is turned off.
 #'
-#' @param biom.indx Character.  Path to the Atlantis biomass index text file
-#'   (\code{<prefix>_OUTBiomIndx.txt}).  Required when
-#'   \code{initial.conditions = TRUE}.  Default: \code{NULL}.
 #' @param fg.file Character.  Path to the functional groups CSV file.  Must
 #'   contain the columns \code{Code}, \code{Name}, \code{IsFished} and
 #'   \code{GroupType}.
@@ -90,13 +87,11 @@
 #' @examples
 #' \dontrun{
 #'   create_target_files_biomass(
-#'     biom.indx = "path/to/outputs/AMPS_OUTBiomIndx.txt",
 #'     fg.file   = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv"
 #'   )
 #'
 #'   # Unfished scenario
 #'   create_target_files_biomass(
-#'     biom.indx     = "path/to/outputs/AMPS_OUTBiomIndx.txt",
 #'     fg.file       = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv",
 #'     unfished      = TRUE
 #'   )
@@ -114,7 +109,7 @@ create_target_files_biomass <- function(fg.file,
                                         parameter.file = "parameter_table.csv",
                                         repro.file = "reproduction-option.csv"){
 
-  
+
   config <- readr::read_csv(here::here("inputs","model_configuration", fg.file))
 
   # Suffix for output files, so unfished outputs do not overwrite standard ones
@@ -131,7 +126,7 @@ create_target_files_biomass <- function(fg.file,
   # Create data files
   ##################
 
-  
+
 
     # Observed biomass time series, with columns Code, Year and Biomass
 
@@ -158,7 +153,7 @@ create_target_files_biomass <- function(fg.file,
       data <- data.frame(Time = a$Year, Biomass = a$Biomass)
       utils::write.csv(data, file.path(data.path, paste0(i, "_biomass.csv")), row.names = FALSE)
     }
-  
+
 
   ##################
   # Create calibration setting file

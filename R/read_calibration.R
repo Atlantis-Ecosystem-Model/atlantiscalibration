@@ -31,7 +31,7 @@
 #'   Default: \code{outputs/keep_track_calibration}.
 #' @param ... Arguments passed to \code{\link{run_model}} through
 #'   \code{\link{make_objfn}} (\code{prefix}, \code{fg.file},
-#'   \code{biom.indx}, \code{run.prm} and \code{dt.timeseries}).
+#'   \code{run.prm} and \code{dt.timeseries}).
 #'
 #' @return Invisibly, a named list with elements \code{setup},
 #'   \code{observed}, \code{forcing}, \code{objfn} (see
@@ -53,7 +53,6 @@
 #'     run          = "RUN",
 #'     restart.file = "restart_file",
 #'     prefix = "outputFolder/outputSETAS", fg.file = "SETasGroupsDem.csv",
-#'     biom.indx = "outputFolder/outputSETASBiomIndx.txt",
 #'     run.prm = "VMPA_setas_run_fishing_F_Trunk.prm", dt.timeseries = 5)
 #' }
 read_calibration <- function(calibration.settings, calibration.parameters, n.Cores,

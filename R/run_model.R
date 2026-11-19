@@ -57,9 +57,6 @@
 #' @param prefix Character.  Prefix path for the Atlantis NetCDF output files
 #'   (e.g. \code{"outputFolder/AMPS"}).
 #' @param fg.file Character.  Name of the functional groups CSV file.
-#' @param biom.indx Character.  Relative path to the biomass index text file
-#'   written by the run (e.g. \code{"outputFolder/AMPS_OUTBiomIndx.txt"}),
-#'   used to detect whether the simulation completed.
 #' @param run.prm Character.  Name of the Atlantis run parameter file, used
 #'   to read \code{tstop}.
 #' @param dt.timeseries Integer.  Number of time steps in each target.
@@ -81,7 +78,6 @@ run_model <- function(param,
                       variables,
                       prefix,
                       fg.file,
-                      biom.indx,
                       run.prm,
                       dt.timeseries,
                       param.file = "calibration-parameters.csv",
@@ -197,19 +193,10 @@ run_model <- function(param,
 
   output <- stats::setNames(vector("list", length(variables)), variables)
 
-  crashed <- !file.exists(file.path(path, biom.indx)) ||
-    is.stopped(path, biom.indx, run.prm)
 
-  if (crashed){
-    # The configuration did not run until tstop, return 0
-    output[!is.abund] <- lapply(seq_len(sum(!is.abund)), function(x) rep(0, dt.timeseries))
-    output[is.abund] <- lapply(n.ages, function(n) matrix(0, nrow = dt.timeseries, ncol = n))
-
-  }else{
 
     outputs <- read_atlantis(path = path, prefix = prefix, fg.file = fg.file,
-                             fishery = any(is.catch),
-                             txt.filename = biom.indx, run.filename = run.prm,
+                             fishery = any(is.catch), run.filename = run.prm,
                              dt.timeserie = dt.timeseries)
 
     # Biomass targets are named by group Code, outputs by group Name
@@ -235,7 +222,7 @@ run_model <- function(param,
         output[[variables[is.abund][i]]] <- do.call(cbind, ages)
       }
     }
-  }
+
 
   return(output)
 }
