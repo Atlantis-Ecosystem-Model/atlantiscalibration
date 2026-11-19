@@ -5,15 +5,12 @@
 \title{Create biomass target files and calibration inputs}
 \usage{
 create_target_files_biomass(
-  biom.indx = NULL,
   fg.file,
   output.path = here::here("inputs"),
   not.calibrated,
   dt.timeseries = 5,
   unfished = FALSE,
   factor.unfished = 1.3,
-  initial.conditions = TRUE,
-  time.series = FALSE,
   biomass.file = "biomass_timeseries.csv",
   biology.prm,
   parameter.file = "parameter_table.csv",
@@ -21,10 +18,6 @@ create_target_files_biomass(
 )
 }
 \arguments{
-\item{biom.indx}{Character.  Path to the Atlantis biomass index text file
-(\code{<prefix>_OUTBiomIndx.txt}).  Required when
-\code{initial.conditions = TRUE}.  Default: \code{NULL}.}
-
 \item{fg.file}{Character.  Path to the functional groups CSV file.  Must
 contain the columns \code{Code}, \code{Name}, \code{IsFished} and
 \code{GroupType}.}
@@ -47,18 +40,9 @@ scenario (see Details).  Default: \code{FALSE}.}
 fished groups to obtain the unfished biomass target.  Only used when
 \code{unfished = TRUE}.  Default: \code{1.3}.}
 
-\item{initial.conditions}{Logical.  If \code{TRUE}, use the initial biomass
-in \code{biom.indx} as a constant target.  Default: \code{TRUE}.}
-
-\item{time.series}{Logical.  If \code{TRUE}, use the observed biomass time
-series in \code{biomass.file} as the target.  Exactly one of
-\code{initial.conditions} and \code{time.series} must be \code{TRUE}.
-Default: \code{FALSE}.}
-
-\item{biomass.file}{Character.  Name of the observed biomass CSV file in
+\item{biomass.file}{Character.  Name of the target biomass CSV file in
 \code{inputs/model_configuration}, with columns \code{Code}, \code{Year}
-and \code{Biomass}.  Only used when \code{time.series = TRUE}.  Default:
-\code{biomass_timeseries.csv}.}
+and \code{Biomass}.  Default: \code{biomass_timeseries.csv}.}
 
 \item{biology.prm}{Character.  Name of the Atlantis biology parameter file
 in \code{inputs/model_configuration}.}
@@ -74,6 +58,10 @@ for that group.  Default: \code{"parameter_table.csv"}.}
 \code{inputs}, with columns \code{Code} and \code{flagrecruit}, as
 written by \code{\link{repro_option}}.  Default:
 \code{"reproduction-option.csv"}.}
+
+\item{biom.indx}{Character.  Path to the Atlantis biomass index text file
+(\code{<prefix>_OUTBiomIndx.txt}).  Required when
+\code{initial.conditions = TRUE}.  Default: \code{NULL}.}
 }
 \value{
 Invisibly, a named list with elements \code{settings} (calibration
@@ -143,11 +131,6 @@ in this case, as fishing is turned off.
     unfished      = TRUE
   )
 
-  # Observed biomass time series as target
-  create_target_files_biomass(
-    fg.file            = "path/to/PugetSoundAtlantisFunctionalGroups_2024.csv",
-    initial.conditions = FALSE,
-    time.series        = TRUE
   )
 }
 }

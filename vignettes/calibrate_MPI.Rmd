@@ -50,10 +50,10 @@ project root, found with `here::here()`):
 ```
 inputs/                       # files created for the calibration
   data/                       # target time series, one CSV per target
-  parameter_table.csv         # parameters to calibrate for each group (step 2)
-  reproduction-option.csv     # recruitment option of each group (step 2)
-  model_configuration/        # all the files needed to run the model
-    outputFolder/             # outputs of a previous run of the model
+  settings_file.txt           # file describing all variables and file names used
+  parameter_table.csv         # parameters to calibrate for each group
+  reproduction-option.csv     # recruitment option of each group
+  model_configuration/        # all the files needed to run the Atlantis model
 outputs/                      # plots
   keep_track_calibration/     # parameter files used in each run of each iteration
 ```
@@ -75,11 +75,7 @@ and the observed time series used as targets.
   these same files, so the shell script does not need to be changed.  The
   first time it runs in a directory, it keeps a copy of each original file as
   `<file>.original`, and the factors are always applied to the values in this
-  copy.  `read_sh_file()` shows the files used by the shell script:
-
-  ```{r read-sh}
-  read_sh_file(here::here("inputs", "model_configuration"))
-  ```
+  copy.  The shell script files are verified and displayed during setup (see step 1 below).
 
 * **Output time steps.**  The model outputs are compared with the last
   `dt.timeseries` output time steps of each run, so the run length (`tstop`)
@@ -114,18 +110,36 @@ It is best to calibrate one parameter per sensitive process.  Rules for use:
   `flagrecruit = 12`, and `BHalpha` and `BHbeta` for groups with
   `flagrecruit = 3` (Beverton-Holt)
 
-The recruitment option of each group is read from the biology parameter file
-with `repro_option()`, which writes `inputs/reproduction-option.csv`:
+The recruitment option of each group is read from the biology parameter file.
+All the initial setup steps are performed together with `setup_calibration()`:
 
-```{r repro-option}
-atlantiscalibration::repro_option(fg.file, biology.prm)
-
-atlantiscalibration::read_parameter_table(parameter.file)
+```{r setup-calibration}
+atlantiscalibration::setup_calibration(
+  fg.file       = fg.file,
+  biology.prm   = biology.prm,
+  parameter.file = parameter.file,
+  var.type      = var.type,
+  fun.type      = fun.type,
+  dt.timeseries = dt.timeseries,
+  w.vector      = w.vector,
+  biom.indx     = biom.indx,
+  init.file     = init.file,
+  catch.file    = catch.file,
+  run.prm       = run.prm
+)
 ```
+
+This function performs the following steps in sequence:
+
+1. Verifies and displays the shell script configuration (files used for biology, harvest, run parameters, etc.)
+2. Reads reproduction options from the biology parameter file (creates `inputs/reproduction-option.csv`)
+3. Reads and validates the parameter table
+4. Updates all forcing file paths to absolute paths
+5. Creates calibration settings and target files
 
 ## 3. Create the calibration targets, settings and parameters
 
-`make_calsettings()` creates all the files needed for the calibration:
+The calibration settings and targets are created by `setup_calibration()`. This function creates all the files needed for the calibration:
 
 * **Targets**, one CSV per target in `inputs/data`:
 
@@ -152,22 +166,7 @@ atlantiscalibration::read_parameter_table(parameter.file)
   `exp(1) = 2.7`) and phase (`parphase`).  The bounds and phases can be edited
   in this file before step 4.
 
-```{r make-calsettings}
-
-atlantiscalibration::make_calsettings(fg.file = fg.file,
-                 var.type       = var.type,
-                 fun.type       = fun.type,
-                 dt.timeseries  = dt.timeseries,
-                 w.vector       = w.vector,
-                 biology.prm    = biology.prm,
-                 init.file      = init.file,
-                 catch.file     = catch.file,
-                 run.prm,
-                 parameter.file = parameter.file)
-
-```
-
-`fun.type` can be any likelihood available in calibrar (see
+The `fun.type` parameter can be any likelihood available in calibrar (see
 `?calibrar::calibration_setup`) or a user-defined function.  The package
 includes `likelihood_function()`, which penalises simulated values outside a
 minimum-maximum envelope given by two columns of observed data; to use it, set
