@@ -1,14 +1,17 @@
-url: ~
+url: https://atlantis-ecosystem-model.github.io/atlantiscalibration/
 template:
   bootstrap: 5
 
 navbar:
   structure:
-    left: [intro, reference, news]
+    left: [intro, reference, tutorials, news]
   components:
     intro:
       text: Get Started
       href: articles/calibrate_MPI.html
+    tutorials:
+      text: Tutorials
+      href: articles/tutorials.html
     reference:
       text: Reference
       href: reference/index.html
